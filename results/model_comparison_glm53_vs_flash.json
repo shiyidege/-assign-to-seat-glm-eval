@@ -1,0 +1,1268 @@
+{
+  "myopic_test": {
+    "Case1": {
+      "avg_revenue": 844.37,
+      "avg_ho": 932.17,
+      "ratio_pct": 90.54,
+      "gap_pct": 9.46,
+      "invalid": 0,
+      "frags": 13.97,
+      "leftover": [
+        6.8,
+        0.83,
+        0.07,
+        0.27,
+        1.07,
+        6.87
+      ],
+      "by_len": {
+        "L1": {
+          "acc": 17.27,
+          "rej": 0.0,
+          "stk": 4.9,
+          "acc%": 77.9
+        },
+        "L2": {
+          "acc": 10.9,
+          "rej": 0.0,
+          "stk": 8.4,
+          "acc%": 56.5
+        },
+        "L3": {
+          "acc": 6.37,
+          "rej": 0.0,
+          "stk": 7.9,
+          "acc%": 44.6
+        },
+        "L4": {
+          "acc": 5.33,
+          "rej": 0.0,
+          "stk": 6.1,
+          "acc%": 46.6
+        },
+        "L5": {
+          "acc": 3.0,
+          "rej": 0.0,
+          "stk": 4.7,
+          "acc%": 39.0
+        },
+        "L6": {
+          "acc": 1.6,
+          "rej": 0.0,
+          "stk": 2.7,
+          "acc%": 37.2
+        }
+      }
+    },
+    "Case2": {
+      "avg_revenue": 792.67,
+      "avg_ho": 922.57,
+      "ratio_pct": 85.92,
+      "gap_pct": 14.08,
+      "invalid": 0,
+      "frags": 18.7,
+      "leftover": [
+        8.7,
+        2.5,
+        0.93,
+        0.4,
+        2.37,
+        8.9
+      ],
+      "by_len": {
+        "L1": {
+          "acc": 15.53,
+          "rej": 0.0,
+          "stk": 1.0,
+          "acc%": 94.0
+        },
+        "L2": {
+          "acc": 12.97,
+          "rej": 0.0,
+          "stk": 2.33,
+          "acc%": 84.7
+        },
+        "L3": {
+          "acc": 8.9,
+          "rej": 0.0,
+          "stk": 5.03,
+          "acc%": 63.9
+        },
+        "L4": {
+          "acc": 3.23,
+          "rej": 0.0,
+          "stk": 9.23,
+          "acc%": 25.9
+        },
+        "L5": {
+          "acc": 1.7,
+          "rej": 0.0,
+          "stk": 9.9,
+          "acc%": 14.7
+        },
+        "L6": {
+          "acc": 1.1,
+          "rej": 0.0,
+          "stk": 9.37,
+          "acc%": 10.5
+        }
+      }
+    },
+    "score": 88.23,
+    "elapsed_ms": 10.76
+  },
+  "static": {
+    "glm-5.3-flash (req=glm-4.7)": [
+      {
+        "instance": "S1_小规模(3座x6区间)",
+        "req_model": "glm-4.7",
+        "backend": "glm-5.3-flash",
+        "exact": 20,
+        "best_revenue": 20,
+        "best_ratio_pct": 100.0,
+        "gap_pct": 0.0,
+        "rounds": [
+          {
+            "round": 1,
+            "feasible": true,
+            "revenue": 20,
+            "ratio_pct": 100.0,
+            "elapsed_s": 74.046
+          },
+          {
+            "round": 2,
+            "feasible": true,
+            "revenue": 20,
+            "ratio_pct": 100.0,
+            "elapsed_s": 6.305
+          },
+          {
+            "round": 3,
+            "feasible": true,
+            "revenue": 20,
+            "ratio_pct": 100.0,
+            "elapsed_s": 4.638
+          },
+          {
+            "round": 4,
+            "feasible": true,
+            "revenue": 20,
+            "ratio_pct": 100.0,
+            "elapsed_s": 5.385
+          }
+        ]
+      },
+      {
+        "instance": "S2_中规模(5座x6区间)",
+        "req_model": "glm-4.7",
+        "backend": "glm-5.3-flash",
+        "exact": 179,
+        "best_revenue": 179,
+        "best_ratio_pct": 100.0,
+        "gap_pct": 0.0,
+        "rounds": [
+          {
+            "round": 1,
+            "feasible": false,
+            "revenue": 0,
+            "ratio_pct": 0.0,
+            "elapsed_s": 95.369
+          },
+          {
+            "round": 2,
+            "feasible": false,
+            "revenue": 0,
+            "ratio_pct": 0.0,
+            "elapsed_s": 17.72
+          },
+          {
+            "round": 3,
+            "feasible": true,
+            "revenue": 179,
+            "ratio_pct": 100.0,
+            "elapsed_s": 26.909
+          },
+          {
+            "round": 4,
+            "feasible": true,
+            "revenue": 179,
+            "ratio_pct": 100.0,
+            "elapsed_s": 16.212
+          }
+        ]
+      },
+      {
+        "instance": "S3_较大规模(8座x6区间)",
+        "req_model": "glm-4.7",
+        "backend": "glm-5.3-flash",
+        "exact": 275,
+        "best_revenue": 0,
+        "best_ratio_pct": 0.0,
+        "gap_pct": 100.0,
+        "rounds": [
+          {
+            "round": 1,
+            "feasible": false,
+            "revenue": 0,
+            "ratio_pct": 0.0,
+            "elapsed_s": 97.913
+          },
+          {
+            "round": 2,
+            "feasible": false,
+            "revenue": 0,
+            "ratio_pct": 0.0,
+            "elapsed_s": 36.15
+          },
+          {
+            "round": 3,
+            "feasible": false,
+            "revenue": 0,
+            "ratio_pct": 0.0,
+            "elapsed_s": 13.211
+          },
+          {
+            "round": 4,
+            "feasible": false,
+            "revenue": 0,
+            "ratio_pct": 0.0,
+            "elapsed_s": 11.921
+          }
+        ]
+      }
+    ],
+    "glm-5.3 (req=glm-5)": [
+      {
+        "instance": "S1_小规模(3座x6区间)",
+        "req_model": "glm-5",
+        "backend": "glm-5.3",
+        "exact": 20,
+        "best_revenue": 20,
+        "best_ratio_pct": 100.0,
+        "gap_pct": 0.0,
+        "rounds": [
+          {
+            "round": 1,
+            "feasible": true,
+            "revenue": 20,
+            "ratio_pct": 100.0,
+            "elapsed_s": 24.876
+          },
+          {
+            "round": 2,
+            "feasible": true,
+            "revenue": 20,
+            "ratio_pct": 100.0,
+            "elapsed_s": 8.136
+          },
+          {
+            "round": 3,
+            "feasible": true,
+            "revenue": 20,
+            "ratio_pct": 100.0,
+            "elapsed_s": 3.349
+          },
+          {
+            "round": 4,
+            "feasible": true,
+            "revenue": 20,
+            "ratio_pct": 100.0,
+            "elapsed_s": 2.761
+          }
+        ]
+      },
+      {
+        "instance": "S2_中规模(5座x6区间)",
+        "req_model": "glm-5",
+        "backend": "glm-5.3",
+        "exact": 179,
+        "best_revenue": 179,
+        "best_ratio_pct": 100.0,
+        "gap_pct": 0.0,
+        "rounds": [
+          {
+            "round": 1,
+            "feasible": false,
+            "revenue": 0,
+            "ratio_pct": 0.0,
+            "elapsed_s": 72.677
+          },
+          {
+            "round": 2,
+            "feasible": true,
+            "revenue": 179,
+            "ratio_pct": 100.0,
+            "elapsed_s": 37.965
+          },
+          {
+            "round": 3,
+            "feasible": false,
+            "revenue": 0,
+            "ratio_pct": 0.0,
+            "elapsed_s": 27.401
+          },
+          {
+            "round": 4,
+            "feasible": true,
+            "revenue": 179,
+            "ratio_pct": 100.0,
+            "elapsed_s": 7.032
+          }
+        ]
+      },
+      {
+        "instance": "S3_较大规模(8座x6区间)",
+        "req_model": "glm-5",
+        "backend": "glm-5.3",
+        "exact": 275,
+        "best_revenue": 259,
+        "best_ratio_pct": 94.18,
+        "gap_pct": 5.82,
+        "rounds": [
+          {
+            "round": 1,
+            "feasible": false,
+            "revenue": 0,
+            "ratio_pct": 0.0,
+            "elapsed_s": 71.309
+          },
+          {
+            "round": 2,
+            "feasible": true,
+            "revenue": 242,
+            "ratio_pct": 88.0,
+            "elapsed_s": 11.493
+          },
+          {
+            "round": 3,
+            "feasible": true,
+            "revenue": 259,
+            "ratio_pct": 94.18,
+            "elapsed_s": 13.652
+          },
+          {
+            "round": 4,
+            "feasible": false,
+            "revenue": 0,
+            "ratio_pct": 0.0,
+            "elapsed_s": 11.313
+          }
+        ]
+      }
+    ]
+  },
+  "evolution_20rounds_from_scratch": {
+    "glm-5.3-flash (req=glm-4.7)": {
+      "req_model": "glm-4.7",
+      "backend": "glm-5.3-flash",
+      "rounds": 20,
+      "valid_rate": "15/20",
+      "valid_count": 15,
+      "total_tokens": 69714,
+      "wall_s": 357.2,
+      "avg_api_s": 38.27,
+      "best_train": {
+        "Case1": {
+          "avg_revenue": 859.25,
+          "avg_ho": 945.45,
+          "ratio_pct": 90.86,
+          "gap_pct": 9.14,
+          "invalid": 0,
+          "frags": 11.95,
+          "leftover": [
+            5.05,
+            0.5,
+            0.2,
+            0.25,
+            0.75,
+            6.45
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 15.15,
+              "rej": 2.05,
+              "stk": 5.75,
+              "acc%": 66.0
+            },
+            "L2": {
+              "acc": 11.6,
+              "rej": 1.25,
+              "stk": 8.5,
+              "acc%": 54.3
+            },
+            "L3": {
+              "acc": 7.15,
+              "rej": 0.55,
+              "stk": 7.2,
+              "acc%": 48.0
+            },
+            "L4": {
+              "acc": 4.4,
+              "rej": 0.45,
+              "stk": 5.95,
+              "acc%": 40.7
+            },
+            "L5": {
+              "acc": 3.3,
+              "rej": 0.05,
+              "stk": 3.7,
+              "acc%": 46.8
+            },
+            "L6": {
+              "acc": 2.15,
+              "rej": 0.0,
+              "stk": 1.9,
+              "acc%": 53.1
+            }
+          }
+        },
+        "Case2": {
+          "avg_revenue": 790.8,
+          "avg_ho": 924.15,
+          "ratio_pct": 85.52,
+          "gap_pct": 14.48,
+          "invalid": 0,
+          "frags": 18.65,
+          "leftover": [
+            8.4,
+            1.35,
+            1.15,
+            1.65,
+            1.9,
+            8.35
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 11.9,
+              "rej": 2.7,
+              "stk": 1.1,
+              "acc%": 75.8
+            },
+            "L2": {
+              "acc": 12.55,
+              "rej": 0.8,
+              "stk": 2.55,
+              "acc%": 78.9
+            },
+            "L3": {
+              "acc": 9.8,
+              "rej": 0.55,
+              "stk": 4.0,
+              "acc%": 68.3
+            },
+            "L4": {
+              "acc": 3.35,
+              "rej": 0.0,
+              "stk": 8.85,
+              "acc%": 27.5
+            },
+            "L5": {
+              "acc": 2.1,
+              "rej": 0.05,
+              "stk": 9.55,
+              "acc%": 17.9
+            },
+            "L6": {
+              "acc": 1.15,
+              "rej": 0.0,
+              "stk": 9.25,
+              "acc%": 11.1
+            }
+          }
+        },
+        "score": 88.19,
+        "elapsed_ms": 116.56
+      },
+      "best_test": {
+        "Case1": {
+          "avg_revenue": 850.6,
+          "avg_ho": 932.17,
+          "ratio_pct": 91.22,
+          "gap_pct": 8.78,
+          "invalid": 0,
+          "frags": 13.27,
+          "leftover": [
+            6.5,
+            0.5,
+            0.07,
+            0.3,
+            0.53,
+            6.4
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 15.67,
+              "rej": 1.87,
+              "stk": 4.63,
+              "acc%": 70.7
+            },
+            "L2": {
+              "acc": 10.3,
+              "rej": 0.9,
+              "stk": 8.1,
+              "acc%": 53.4
+            },
+            "L3": {
+              "acc": 6.83,
+              "rej": 0.23,
+              "stk": 7.2,
+              "acc%": 47.9
+            },
+            "L4": {
+              "acc": 5.33,
+              "rej": 0.3,
+              "stk": 5.8,
+              "acc%": 46.6
+            },
+            "L5": {
+              "acc": 3.4,
+              "rej": 0.2,
+              "stk": 4.1,
+              "acc%": 44.2
+            },
+            "L6": {
+              "acc": 1.77,
+              "rej": 0.0,
+              "stk": 2.53,
+              "acc%": 41.1
+            }
+          }
+        },
+        "Case2": {
+          "avg_revenue": 799.0,
+          "avg_ho": 922.57,
+          "ratio_pct": 86.6,
+          "gap_pct": 13.4,
+          "invalid": 0,
+          "frags": 18.03,
+          "leftover": [
+            8.13,
+            1.77,
+            1.4,
+            0.93,
+            1.63,
+            8.2
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 12.87,
+              "rej": 2.73,
+              "stk": 0.93,
+              "acc%": 77.8
+            },
+            "L2": {
+              "acc": 12.37,
+              "rej": 0.87,
+              "stk": 2.07,
+              "acc%": 80.8
+            },
+            "L3": {
+              "acc": 9.83,
+              "rej": 0.43,
+              "stk": 3.67,
+              "acc%": 70.6
+            },
+            "L4": {
+              "acc": 3.77,
+              "rej": 0.0,
+              "stk": 8.7,
+              "acc%": 30.2
+            },
+            "L5": {
+              "acc": 1.83,
+              "rej": 0.0,
+              "stk": 9.77,
+              "acc%": 15.8
+            },
+            "L6": {
+              "acc": 1.1,
+              "rej": 0.0,
+              "stk": 9.37,
+              "acc%": 10.5
+            }
+          }
+        },
+        "score": 88.91,
+        "elapsed_ms": 170.86
+      },
+      "best_tag": "P1_纯Python最小费用流_BPCA_碎片感知",
+      "history": [
+        {
+          "id": "glm-4.7_E01",
+          "status": "api_error",
+          "error": "GLM API HTTP 429: {\"error\":{\"code\":\"1302\",\"message\":\"您的账户已达到速率限制，请您控制请求频率\"}}",
+          "api_s": 0.0
+        },
+        {
+          "id": "glm-4.7_E02",
+          "status": "ok",
+          "tag": "P2_纯Python次梯度对偶_BPCM",
+          "train_score": 9.775,
+          "train_c1": 9.76,
+          "train_c2": 9.79,
+          "test_score": 10.155,
+          "test_c1": 10.55,
+          "test_c2": 9.76,
+          "api_s": 42.416
+        },
+        {
+          "id": "glm-4.7_E03",
+          "status": "ok",
+          "tag": "P1_纯Python最小费用流_BPCA_碎片感知",
+          "train_score": 88.19,
+          "train_c1": 90.86,
+          "train_c2": 85.52,
+          "test_score": 88.91,
+          "test_c1": 91.22,
+          "test_c2": 86.6,
+          "api_s": 54.625
+        },
+        {
+          "id": "glm-4.7_E04",
+          "status": "ok",
+          "tag": "P3_纯Python动态原问题近似_RDP",
+          "train_score": 85.86,
+          "train_c1": 89.45,
+          "train_c2": 82.27,
+          "test_score": 86.72,
+          "test_c1": 90.8,
+          "test_c2": 82.64,
+          "api_s": 92.834
+        },
+        {
+          "id": "glm-4.7_E05",
+          "status": "ok",
+          "tag": "Cross(glm-4.7_E03+glm-4.7_E04)",
+          "train_score": 87.795,
+          "train_c1": 90.29,
+          "train_c2": 85.3,
+          "test_score": 88.575,
+          "test_c1": 90.85,
+          "test_c2": 86.3,
+          "api_s": 27.472
+        },
+        {
+          "id": "glm-4.7_E06",
+          "status": "ok",
+          "tag": "P5_多阶段动态护留与连续性价值",
+          "train_score": 0.0,
+          "train_c1": 0.0,
+          "train_c2": 0.0,
+          "test_score": 0.0,
+          "test_c1": 0.0,
+          "test_c2": 0.0,
+          "api_s": 35.376
+        },
+        {
+          "id": "glm-4.7_E07",
+          "status": "ok",
+          "tag": "Refine(glm-4.7_E03)",
+          "train_score": 2.825,
+          "train_c1": 2.92,
+          "train_c2": 2.73,
+          "test_score": 3.05,
+          "test_c1": 3.25,
+          "test_c2": 2.85,
+          "api_s": 47.344
+        },
+        {
+          "id": "glm-4.7_E08",
+          "status": "ok",
+          "tag": "P6_方差修正流体与在线双界混合",
+          "train_score": 82.63,
+          "train_c1": 86.37,
+          "train_c2": 78.89,
+          "test_score": 82.635,
+          "test_c1": 85.41,
+          "test_c2": 79.86,
+          "api_s": 68.877
+        },
+        {
+          "id": "glm-4.7_E09",
+          "status": "api_error",
+          "error": "GLM API HTTP 429: {\"error\":{\"code\":\"1302\",\"message\":\"您的账户已达到速率限制，请您控制请求频率\"}}",
+          "api_s": 0.0
+        },
+        {
+          "id": "glm-4.7_E10",
+          "status": "ok",
+          "tag": "Cross(glm-4.7_E03+glm-4.7_E02)",
+          "train_score": 88.065,
+          "train_c1": 90.68,
+          "train_c2": 85.45,
+          "test_score": 88.915,
+          "test_c1": 91.2,
+          "test_c2": 86.63,
+          "api_s": 21.338
+        },
+        {
+          "id": "glm-4.7_E11",
+          "status": "ok",
+          "tag": "P5_多阶段动态护留与连续性价值",
+          "train_score": 0.0,
+          "train_c1": 0.0,
+          "train_c2": 0.0,
+          "test_score": 0.0,
+          "test_c1": 0.0,
+          "test_c2": 0.0,
+          "api_s": 28.539
+        },
+        {
+          "id": "glm-4.7_E12",
+          "status": "ok",
+          "tag": "Tune(glm-4.7_E03)",
+          "train_score": 87.2,
+          "train_c1": 89.52,
+          "train_c2": 84.88,
+          "test_score": 88.23,
+          "test_c1": 90.54,
+          "test_c2": 85.92,
+          "api_s": 34.59
+        },
+        {
+          "id": "glm-4.7_E13",
+          "status": "api_error",
+          "error": "GLM API HTTP 429: {\"error\":{\"code\":\"1302\",\"message\":\"您的账户已达到速率限制，请您控制请求频率\"}}",
+          "api_s": 0.0
+        },
+        {
+          "id": "glm-4.7_E14",
+          "status": "ok",
+          "tag": "Tune(glm-4.7_E03)",
+          "train_score": 39.615,
+          "train_c1": 35.74,
+          "train_c2": 43.49,
+          "test_score": 41.76,
+          "test_c1": 39.4,
+          "test_c2": 44.12,
+          "api_s": 48.414
+        },
+        {
+          "id": "glm-4.7_E15",
+          "status": "ok",
+          "tag": "Refine(glm-4.7_E10)",
+          "train_score": 7.05,
+          "train_c1": 5.67,
+          "train_c2": 8.43,
+          "test_score": 7.07,
+          "test_c1": 5.87,
+          "test_c2": 8.27,
+          "api_s": 53.242
+        },
+        {
+          "id": "glm-4.7_E16",
+          "status": "eval_error",
+          "error": "invalid syntax (<unknown>, line 1)",
+          "api_s": 109.528
+        },
+        {
+          "id": "glm-4.7_E17",
+          "status": "api_error",
+          "error": "GLM API HTTP 429: {\"error\":{\"code\":\"1302\",\"message\":\"您的账户已达到速率限制，请您控制请求频率\"}}",
+          "api_s": 0.0
+        },
+        {
+          "id": "glm-4.7_E18",
+          "status": "ok",
+          "tag": "Cross(glm-4.7_E03+glm-4.7_E12)",
+          "train_score": 87.2,
+          "train_c1": 89.52,
+          "train_c2": 84.88,
+          "test_score": 88.23,
+          "test_c1": 90.54,
+          "test_c2": 85.92,
+          "api_s": 22.982
+        },
+        {
+          "id": "glm-4.7_E19",
+          "status": "ok",
+          "tag": "Tune(glm-4.7_E03)",
+          "train_score": 87.2,
+          "train_c1": 89.52,
+          "train_c2": 84.88,
+          "test_score": 88.23,
+          "test_c1": 90.54,
+          "test_c2": 85.92,
+          "api_s": 29.416
+        },
+        {
+          "id": "glm-4.7_E20",
+          "status": "ok",
+          "tag": "Refine(glm-4.7_E10)",
+          "train_score": 87.2,
+          "train_c1": 89.52,
+          "train_c2": 84.88,
+          "test_score": 88.23,
+          "test_c1": 90.54,
+          "test_c2": 85.92,
+          "api_s": 48.465
+        }
+      ]
+    },
+    "glm-5.3 (req=glm-5)": {
+      "req_model": "glm-5",
+      "backend": "glm-5.3",
+      "rounds": 20,
+      "valid_rate": "18/20",
+      "valid_count": 18,
+      "total_tokens": 74127,
+      "wall_s": 197.8,
+      "avg_api_s": 24.87,
+      "best_train": {
+        "Case1": {
+          "avg_revenue": 889.8,
+          "avg_ho": 945.45,
+          "ratio_pct": 94.12,
+          "gap_pct": 5.88,
+          "invalid": 0,
+          "frags": 8.4,
+          "leftover": [
+            2.95,
+            0.2,
+            0.5,
+            1.0,
+            0.75,
+            4.15
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 17.2,
+              "rej": 4.5,
+              "stk": 1.25,
+              "acc%": 74.9
+            },
+            "L2": {
+              "acc": 11.45,
+              "rej": 7.75,
+              "stk": 2.15,
+              "acc%": 53.6
+            },
+            "L3": {
+              "acc": 7.0,
+              "rej": 6.65,
+              "stk": 1.25,
+              "acc%": 47.0
+            },
+            "L4": {
+              "acc": 4.9,
+              "rej": 4.95,
+              "stk": 0.95,
+              "acc%": 45.4
+            },
+            "L5": {
+              "acc": 2.65,
+              "rej": 3.7,
+              "stk": 0.7,
+              "acc%": 37.6
+            },
+            "L6": {
+              "acc": 2.75,
+              "rej": 0.9,
+              "stk": 0.4,
+              "acc%": 67.9
+            }
+          }
+        },
+        "Case2": {
+          "avg_revenue": 824.3,
+          "avg_ho": 924.15,
+          "ratio_pct": 89.16,
+          "gap_pct": 10.84,
+          "invalid": 0,
+          "frags": 14.45,
+          "leftover": [
+            5.9,
+            1.4,
+            1.5,
+            1.65,
+            1.35,
+            5.9
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 14.05,
+              "rej": 1.45,
+              "stk": 0.2,
+              "acc%": 89.5
+            },
+            "L2": {
+              "acc": 10.75,
+              "rej": 4.4,
+              "stk": 0.75,
+              "acc%": 67.6
+            },
+            "L3": {
+              "acc": 7.7,
+              "rej": 5.85,
+              "stk": 0.8,
+              "acc%": 53.7
+            },
+            "L4": {
+              "acc": 4.3,
+              "rej": 6.8,
+              "stk": 1.1,
+              "acc%": 35.2
+            },
+            "L5": {
+              "acc": 3.55,
+              "rej": 5.4,
+              "stk": 2.75,
+              "acc%": 30.3
+            },
+            "L6": {
+              "acc": 1.45,
+              "rej": 0.6,
+              "stk": 8.35,
+              "acc%": 13.9
+            }
+          }
+        },
+        "score": 91.64,
+        "elapsed_ms": 33.18
+      },
+      "best_test": {
+        "Case1": {
+          "avg_revenue": 874.6,
+          "avg_ho": 932.17,
+          "ratio_pct": 93.81,
+          "gap_pct": 6.19,
+          "invalid": 0,
+          "frags": 10.0,
+          "leftover": [
+            4.03,
+            0.43,
+            0.67,
+            0.57,
+            0.83,
+            4.53
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 17.07,
+              "rej": 4.37,
+              "stk": 0.73,
+              "acc%": 77.0
+            },
+            "L2": {
+              "acc": 10.77,
+              "rej": 6.73,
+              "stk": 1.8,
+              "acc%": 55.8
+            },
+            "L3": {
+              "acc": 6.4,
+              "rej": 6.03,
+              "stk": 1.83,
+              "acc%": 44.9
+            },
+            "L4": {
+              "acc": 4.6,
+              "rej": 5.3,
+              "stk": 1.53,
+              "acc%": 40.2
+            },
+            "L5": {
+              "acc": 3.07,
+              "rej": 3.77,
+              "stk": 0.87,
+              "acc%": 39.8
+            },
+            "L6": {
+              "acc": 2.9,
+              "rej": 0.9,
+              "stk": 0.5,
+              "acc%": 67.4
+            }
+          }
+        },
+        "Case2": {
+          "avg_revenue": 834.3,
+          "avg_ho": 922.57,
+          "ratio_pct": 90.42,
+          "gap_pct": 9.58,
+          "invalid": 0,
+          "frags": 13.4,
+          "leftover": [
+            5.83,
+            1.47,
+            1.3,
+            0.9,
+            1.2,
+            5.8
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 14.93,
+              "rej": 1.37,
+              "stk": 0.23,
+              "acc%": 90.3
+            },
+            "L2": {
+              "acc": 10.6,
+              "rej": 4.03,
+              "stk": 0.67,
+              "acc%": 69.3
+            },
+            "L3": {
+              "acc": 7.4,
+              "rej": 6.03,
+              "stk": 0.5,
+              "acc%": 53.1
+            },
+            "L4": {
+              "acc": 5.0,
+              "rej": 6.67,
+              "stk": 0.8,
+              "acc%": 40.1
+            },
+            "L5": {
+              "acc": 2.83,
+              "rej": 7.2,
+              "stk": 1.57,
+              "acc%": 24.4
+            },
+            "L6": {
+              "acc": 1.83,
+              "rej": 0.77,
+              "stk": 7.87,
+              "acc%": 17.5
+            }
+          }
+        },
+        "score": 92.115,
+        "elapsed_ms": 48.85
+      },
+      "best_tag": "P6_方差修正流体与在线双界混合",
+      "history": [
+        {
+          "id": "glm-5_E01",
+          "status": "ok",
+          "tag": "P2_纯Python次梯度对偶_BPCM",
+          "train_score": 81.495,
+          "train_c1": 85.42,
+          "train_c2": 77.57,
+          "test_score": 81.96,
+          "test_c1": 85.36,
+          "test_c2": 78.56,
+          "api_s": 13.294
+        },
+        {
+          "id": "glm-5_E02",
+          "status": "ok",
+          "tag": "P3_纯Python动态原问题近似_RDP",
+          "train_score": 20.59,
+          "train_c1": 24.23,
+          "train_c2": 16.95,
+          "test_score": 20.875,
+          "test_c1": 23.79,
+          "test_c2": 17.96,
+          "api_s": 14.643
+        },
+        {
+          "id": "glm-5_E03",
+          "status": "ok",
+          "tag": "P1_纯Python最小费用流_BPCA_碎片感知",
+          "train_score": 79.955,
+          "train_c1": 83.3,
+          "train_c2": 76.61,
+          "test_score": 80.045,
+          "test_c1": 83.85,
+          "test_c2": 76.24,
+          "api_s": 16.132
+        },
+        {
+          "id": "glm-5_E04",
+          "status": "ok",
+          "tag": "P4_严格分裂流体前向推演_Rollout",
+          "train_score": 39.16,
+          "train_c1": 32.58,
+          "train_c2": 45.74,
+          "test_score": 41.455,
+          "test_c1": 36.29,
+          "test_c2": 46.62,
+          "api_s": 19.848
+        },
+        {
+          "id": "glm-5_E05",
+          "status": "ok",
+          "tag": "Cross(glm-5_E01+glm-5_E03)",
+          "train_score": 87.265,
+          "train_c1": 90.64,
+          "train_c2": 83.89,
+          "test_score": 87.815,
+          "test_c1": 91.34,
+          "test_c2": 84.29,
+          "api_s": 22.488
+        },
+        {
+          "id": "glm-5_E06",
+          "status": "ok",
+          "tag": "P6_方差修正流体与在线双界混合",
+          "train_score": 91.64,
+          "train_c1": 94.12,
+          "train_c2": 89.16,
+          "test_score": 92.115,
+          "test_c1": 93.81,
+          "test_c2": 90.42,
+          "api_s": 25.116
+        },
+        {
+          "id": "glm-5_E07",
+          "status": "ok",
+          "tag": "P5_多阶段动态护留与连续性价值",
+          "train_score": 75.25,
+          "train_c1": 72.36,
+          "train_c2": 78.14,
+          "test_score": 76.105,
+          "test_c1": 74.26,
+          "test_c2": 77.95,
+          "api_s": 29.009
+        },
+        {
+          "id": "glm-5_E08",
+          "status": "ok",
+          "tag": "Refine(glm-5_E01)",
+          "train_score": 89.65,
+          "train_c1": 93.72,
+          "train_c2": 85.58,
+          "test_score": 91.1,
+          "test_c1": 93.92,
+          "test_c2": 88.28,
+          "api_s": 38.575
+        },
+        {
+          "id": "glm-5_E09",
+          "status": "ok",
+          "tag": "Tune(glm-5_E06)",
+          "train_score": 89.875,
+          "train_c1": 92.0,
+          "train_c2": 87.75,
+          "test_score": 90.73,
+          "test_c1": 92.71,
+          "test_c2": 88.75,
+          "api_s": 12.958
+        },
+        {
+          "id": "glm-5_E10",
+          "status": "ok",
+          "tag": "Cross(glm-5_E06+glm-5_E03)",
+          "train_score": 91.16,
+          "train_c1": 93.24,
+          "train_c2": 89.08,
+          "test_score": 91.66,
+          "test_c1": 93.32,
+          "test_c2": 90.0,
+          "api_s": 14.443
+        },
+        {
+          "id": "glm-5_E11",
+          "status": "ok",
+          "tag": "Refine(glm-5_E06)",
+          "train_score": 87.2,
+          "train_c1": 89.52,
+          "train_c2": 84.88,
+          "test_score": 88.23,
+          "test_c1": 90.54,
+          "test_c2": 85.92,
+          "api_s": 29.328
+        },
+        {
+          "id": "glm-5_E12",
+          "status": "ok",
+          "tag": "P5_多阶段动态护留与连续性价值",
+          "train_score": 89.25,
+          "train_c1": 94.23,
+          "train_c2": 84.27,
+          "test_score": 90.85,
+          "test_c1": 93.72,
+          "test_c2": 87.98,
+          "api_s": 29.851
+        },
+        {
+          "id": "glm-5_E13",
+          "status": "ok",
+          "tag": "Tune(glm-5_E06)",
+          "train_score": 91.25,
+          "train_c1": 93.2,
+          "train_c2": 89.3,
+          "test_score": 91.79,
+          "test_c1": 93.52,
+          "test_c2": 90.06,
+          "api_s": 17.071
+        },
+        {
+          "id": "glm-5_E14",
+          "status": "ok",
+          "tag": "Refine(glm-5_E06)",
+          "train_score": 87.2,
+          "train_c1": 89.52,
+          "train_c2": 84.88,
+          "test_score": 88.23,
+          "test_c1": 90.54,
+          "test_c2": 85.92,
+          "api_s": 18.902
+        },
+        {
+          "id": "glm-5_E15",
+          "status": "eval_error",
+          "error": "local variable 'last' referenced before assignment",
+          "api_s": 35.739
+        },
+        {
+          "id": "glm-5_E16",
+          "status": "eval_error",
+          "error": "invalid syntax (<unknown>, line 1)",
+          "api_s": 75.154
+        },
+        {
+          "id": "glm-5_E17",
+          "status": "ok",
+          "tag": "Cross(glm-5_E06+glm-5_E09)",
+          "train_score": 90.195,
+          "train_c1": 92.8,
+          "train_c2": 87.59,
+          "test_score": 90.28,
+          "test_c1": 92.62,
+          "test_c2": 87.94,
+          "api_s": 11.735
+        },
+        {
+          "id": "glm-5_E18",
+          "status": "ok",
+          "tag": "Tune(glm-5_E06)",
+          "train_score": 91.28,
+          "train_c1": 93.98,
+          "train_c2": 88.58,
+          "test_score": 92.245,
+          "test_c1": 93.8,
+          "test_c2": 90.69,
+          "api_s": 17.534
+        },
+        {
+          "id": "glm-5_E19",
+          "status": "ok",
+          "tag": "Refine(glm-5_E13)",
+          "train_score": 87.135,
+          "train_c1": 89.12,
+          "train_c2": 85.15,
+          "test_score": 87.725,
+          "test_c1": 89.66,
+          "test_c2": 85.79,
+          "api_s": 23.58
+        },
+        {
+          "id": "glm-5_E20",
+          "status": "ok",
+          "tag": "Refine(glm-5_E06)",
+          "train_score": 89.98,
+          "train_c1": 92.2,
+          "train_c2": 87.76,
+          "test_score": 90.665,
+          "test_c1": 92.53,
+          "test_c2": 88.8,
+          "api_s": 31.992
+        }
+      ]
+    }
+  }
+}

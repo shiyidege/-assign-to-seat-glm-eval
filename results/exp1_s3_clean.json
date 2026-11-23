@@ -1,0 +1,91 @@
+{
+  "exact_optimum": 275,
+  "greedy_by_total_price": 259,
+  "greedy_by_unit_price": 242,
+  "glm_best_revenue": 274,
+  "glm_best_opt_ratio_pct": 99.64,
+  "rounds": [
+    {
+      "round": 1,
+      "feasible": false,
+      "revenue": 0,
+      "opt_ratio_pct": 0.0,
+      "errors": [
+        "模型返回内容为空"
+      ],
+      "elapsed_s": 53.059,
+      "usage": {
+        "completion_tokens": 4096,
+        "completion_tokens_details": {
+          "reasoning_tokens": 4095
+        },
+        "prompt_tokens": 998,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 5094
+      }
+    },
+    {
+      "round": 2,
+      "feasible": true,
+      "revenue": 274,
+      "opt_ratio_pct": 99.64,
+      "errors": [],
+      "elapsed_s": 44.113,
+      "usage": {
+        "completion_tokens": 3272,
+        "completion_tokens_details": {
+          "reasoning_tokens": 2873
+        },
+        "prompt_tokens": 1043,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 4315
+      }
+    },
+    {
+      "round": 3,
+      "feasible": false,
+      "revenue": 0,
+      "opt_ratio_pct": 0.0,
+      "errors": [
+        "模型返回内容为空"
+      ],
+      "elapsed_s": 62.517,
+      "usage": {
+        "completion_tokens": 4096,
+        "completion_tokens_details": {
+          "reasoning_tokens": 4095
+        },
+        "prompt_tokens": 1704,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 5800
+      }
+    },
+    {
+      "round": 4,
+      "feasible": false,
+      "revenue": 0,
+      "opt_ratio_pct": 0.0,
+      "errors": [
+        "模型返回内容为空"
+      ],
+      "elapsed_s": 55.102,
+      "usage": {
+        "completion_tokens": 4096,
+        "completion_tokens_details": {
+          "reasoning_tokens": 4095
+        },
+        "prompt_tokens": 1749,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 5845
+      }
+    }
+  ]
+}

@@ -1,0 +1,2477 @@
+{
+  "config": {
+    "rounds": 100,
+    "workers": 5,
+    "topk": 6,
+    "model": "glm-5",
+    "M": 6,
+    "N": 20,
+    "T": 100
+  },
+  "total_evals": 100,
+  "valid_evals": 90,
+  "total_tokens": 631631,
+  "total_wall_s": 925.66,
+  "myopic_baseline": {
+    "train": {
+      "Case1": {
+        "avg_revenue": 846.75,
+        "avg_ho": 945.45,
+        "ratio_pct": 89.52,
+        "gap_pct": 10.48,
+        "invalid": 0,
+        "frags": 13.6,
+        "leftover": [
+          5.95,
+          1.0,
+          0.3,
+          0.5,
+          1.45,
+          6.9
+        ],
+        "by_len": {
+          "L1": {
+            "acc": 17.1,
+            "rej": 0.0,
+            "stk": 5.85,
+            "acc%": 74.5
+          },
+          "L2": {
+            "acc": 12.8,
+            "rej": 0.0,
+            "stk": 8.55,
+            "acc%": 60.0
+          },
+          "L3": {
+            "acc": 6.95,
+            "rej": 0.0,
+            "stk": 7.95,
+            "acc%": 46.6
+          },
+          "L4": {
+            "acc": 3.9,
+            "rej": 0.0,
+            "stk": 6.9,
+            "acc%": 36.1
+          },
+          "L5": {
+            "acc": 2.85,
+            "rej": 0.0,
+            "stk": 4.2,
+            "acc%": 40.4
+          },
+          "L6": {
+            "acc": 1.75,
+            "rej": 0.0,
+            "stk": 2.3,
+            "acc%": 43.2
+          }
+        }
+      },
+      "Case2": {
+        "avg_revenue": 785.1,
+        "avg_ho": 924.15,
+        "ratio_pct": 84.88,
+        "gap_pct": 15.12,
+        "invalid": 0,
+        "frags": 19.6,
+        "leftover": [
+          9.15,
+          2.15,
+          0.95,
+          0.8,
+          2.5,
+          8.9
+        ],
+        "by_len": {
+          "L1": {
+            "acc": 14.3,
+            "rej": 0.0,
+            "stk": 1.4,
+            "acc%": 91.1
+          },
+          "L2": {
+            "acc": 13.5,
+            "rej": 0.0,
+            "stk": 2.4,
+            "acc%": 84.9
+          },
+          "L3": {
+            "acc": 8.75,
+            "rej": 0.0,
+            "stk": 5.6,
+            "acc%": 61.0
+          },
+          "L4": {
+            "acc": 2.85,
+            "rej": 0.0,
+            "stk": 9.35,
+            "acc%": 23.4
+          },
+          "L5": {
+            "acc": 2.0,
+            "rej": 0.0,
+            "stk": 9.7,
+            "acc%": 17.1
+          },
+          "L6": {
+            "acc": 1.1,
+            "rej": 0.0,
+            "stk": 9.3,
+            "acc%": 10.6
+          }
+        }
+      },
+      "score": 87.2,
+      "elapsed_ms": 10.86
+    },
+    "test_heldout": {
+      "Case1": {
+        "avg_revenue": 844.37,
+        "avg_ho": 932.17,
+        "ratio_pct": 90.54,
+        "gap_pct": 9.46,
+        "invalid": 0,
+        "frags": 13.97,
+        "leftover": [
+          6.8,
+          0.83,
+          0.07,
+          0.27,
+          1.07,
+          6.87
+        ],
+        "by_len": {
+          "L1": {
+            "acc": 17.27,
+            "rej": 0.0,
+            "stk": 4.9,
+            "acc%": 77.9
+          },
+          "L2": {
+            "acc": 10.9,
+            "rej": 0.0,
+            "stk": 8.4,
+            "acc%": 56.5
+          },
+          "L3": {
+            "acc": 6.37,
+            "rej": 0.0,
+            "stk": 7.9,
+            "acc%": 44.6
+          },
+          "L4": {
+            "acc": 5.33,
+            "rej": 0.0,
+            "stk": 6.1,
+            "acc%": 46.6
+          },
+          "L5": {
+            "acc": 3.0,
+            "rej": 0.0,
+            "stk": 4.7,
+            "acc%": 39.0
+          },
+          "L6": {
+            "acc": 1.6,
+            "rej": 0.0,
+            "stk": 2.7,
+            "acc%": 37.2
+          }
+        }
+      },
+      "Case2": {
+        "avg_revenue": 792.67,
+        "avg_ho": 922.57,
+        "ratio_pct": 85.92,
+        "gap_pct": 14.08,
+        "invalid": 0,
+        "frags": 18.7,
+        "leftover": [
+          8.7,
+          2.5,
+          0.93,
+          0.4,
+          2.37,
+          8.9
+        ],
+        "by_len": {
+          "L1": {
+            "acc": 15.53,
+            "rej": 0.0,
+            "stk": 1.0,
+            "acc%": 94.0
+          },
+          "L2": {
+            "acc": 12.97,
+            "rej": 0.0,
+            "stk": 2.33,
+            "acc%": 84.7
+          },
+          "L3": {
+            "acc": 8.9,
+            "rej": 0.0,
+            "stk": 5.03,
+            "acc%": 63.9
+          },
+          "L4": {
+            "acc": 3.23,
+            "rej": 0.0,
+            "stk": 9.23,
+            "acc%": 25.9
+          },
+          "L5": {
+            "acc": 1.7,
+            "rej": 0.0,
+            "stk": 9.9,
+            "acc%": 14.7
+          },
+          "L6": {
+            "acc": 1.1,
+            "rej": 0.0,
+            "stk": 9.37,
+            "acc%": 10.5
+          }
+        }
+      },
+      "score": 88.23,
+      "elapsed_ms": 14.59
+    },
+    "bench30": {
+      "Case1": {
+        "avg_revenue": 849.9,
+        "avg_ho": 944.87,
+        "ratio_pct": 89.92,
+        "gap_pct": 10.08,
+        "invalid": 0,
+        "frags": 13.53,
+        "leftover": [
+          6.07,
+          0.9,
+          0.2,
+          0.43,
+          1.3,
+          6.83
+        ],
+        "by_len": {
+          "L1": {
+            "acc": 17.33,
+            "rej": 0.0,
+            "stk": 5.53,
+            "acc%": 75.8
+          },
+          "L2": {
+            "acc": 12.17,
+            "rej": 0.0,
+            "stk": 8.0,
+            "acc%": 60.3
+          },
+          "L3": {
+            "acc": 7.17,
+            "rej": 0.0,
+            "stk": 8.07,
+            "acc%": 47.0
+          },
+          "L4": {
+            "acc": 4.2,
+            "rej": 0.0,
+            "stk": 6.87,
+            "acc%": 38.0
+          },
+          "L5": {
+            "acc": 3.1,
+            "rej": 0.0,
+            "stk": 4.33,
+            "acc%": 41.7
+          },
+          "L6": {
+            "acc": 1.47,
+            "rej": 0.0,
+            "stk": 2.5,
+            "acc%": 37.0
+          }
+        }
+      },
+      "Case2": {
+        "avg_revenue": 790.87,
+        "avg_ho": 926.0,
+        "ratio_pct": 85.35,
+        "gap_pct": 14.65,
+        "invalid": 0,
+        "frags": 18.67,
+        "leftover": [
+          8.6,
+          2.53,
+          0.83,
+          0.53,
+          2.6,
+          8.9
+        ],
+        "by_len": {
+          "L1": {
+            "acc": 14.9,
+            "rej": 0.0,
+            "stk": 1.37,
+            "acc%": 91.6
+          },
+          "L2": {
+            "acc": 13.47,
+            "rej": 0.0,
+            "stk": 2.27,
+            "acc%": 85.6
+          },
+          "L3": {
+            "acc": 9.07,
+            "rej": 0.0,
+            "stk": 5.27,
+            "acc%": 63.3
+          },
+          "L4": {
+            "acc": 2.93,
+            "rej": 0.0,
+            "stk": 9.47,
+            "acc%": 23.7
+          },
+          "L5": {
+            "acc": 1.77,
+            "rej": 0.0,
+            "stk": 9.43,
+            "acc%": 15.8
+          },
+          "L6": {
+            "acc": 1.07,
+            "rej": 0.0,
+            "stk": 8.97,
+            "acc%": 10.6
+          }
+        }
+      },
+      "score": 87.635,
+      "elapsed_ms": 14.83
+    }
+  },
+  "final_top3": [
+    {
+      "id": "E097",
+      "tag": "Cross(E087+E082)",
+      "train_eval": {
+        "Case1": {
+          "avg_revenue": 896.95,
+          "avg_ho": 945.45,
+          "ratio_pct": 94.88,
+          "gap_pct": 5.12,
+          "invalid": 0,
+          "frags": 5.85,
+          "leftover": [
+            2.15,
+            0.1,
+            0.3,
+            0.3,
+            0.25,
+            3.15
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 14.1,
+              "rej": 6.9,
+              "stk": 1.95,
+              "acc%": 61.4
+            },
+            "L2": {
+              "acc": 9.85,
+              "rej": 8.75,
+              "stk": 2.75,
+              "acc%": 46.1
+            },
+            "L3": {
+              "acc": 6.0,
+              "rej": 7.1,
+              "stk": 1.8,
+              "acc%": 40.3
+            },
+            "L4": {
+              "acc": 5.5,
+              "rej": 4.4,
+              "stk": 0.9,
+              "acc%": 50.9
+            },
+            "L5": {
+              "acc": 3.55,
+              "rej": 2.75,
+              "stk": 0.75,
+              "acc%": 50.4
+            },
+            "L6": {
+              "acc": 3.7,
+              "rej": 0.0,
+              "stk": 0.35,
+              "acc%": 91.4
+            }
+          }
+        },
+        "Case2": {
+          "avg_revenue": 864.55,
+          "avg_ho": 924.15,
+          "ratio_pct": 93.56,
+          "gap_pct": 6.44,
+          "invalid": 0,
+          "frags": 4.65,
+          "leftover": [
+            1.65,
+            0.45,
+            0.5,
+            0.8,
+            0.15,
+            1.6
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 9.4,
+              "rej": 6.2,
+              "stk": 0.1,
+              "acc%": 59.9
+            },
+            "L2": {
+              "acc": 5.25,
+              "rej": 10.15,
+              "stk": 0.5,
+              "acc%": 33.0
+            },
+            "L3": {
+              "acc": 4.55,
+              "rej": 9.65,
+              "stk": 0.15,
+              "acc%": 31.7
+            },
+            "L4": {
+              "acc": 3.25,
+              "rej": 8.85,
+              "stk": 0.1,
+              "acc%": 26.6
+            },
+            "L5": {
+              "acc": 4.3,
+              "rej": 7.25,
+              "stk": 0.15,
+              "acc%": 36.8
+            },
+            "L6": {
+              "acc": 7.8,
+              "rej": 0.1,
+              "stk": 2.5,
+              "acc%": 75.0
+            }
+          }
+        },
+        "score": 94.22,
+        "elapsed_ms": 410.8
+      },
+      "test_eval": {
+        "Case1": {
+          "avg_revenue": 884.43,
+          "avg_ho": 932.17,
+          "ratio_pct": 94.88,
+          "gap_pct": 5.12,
+          "invalid": 0,
+          "frags": 7.1,
+          "leftover": [
+            3.2,
+            0.23,
+            0.57,
+            0.27,
+            0.2,
+            3.13
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 14.4,
+              "rej": 6.33,
+              "stk": 1.43,
+              "acc%": 65.0
+            },
+            "L2": {
+              "acc": 8.77,
+              "rej": 8.4,
+              "stk": 2.13,
+              "acc%": 45.4
+            },
+            "L3": {
+              "acc": 5.7,
+              "rej": 6.57,
+              "stk": 2.0,
+              "acc%": 40.0
+            },
+            "L4": {
+              "acc": 5.23,
+              "rej": 4.77,
+              "stk": 1.43,
+              "acc%": 45.8
+            },
+            "L5": {
+              "acc": 4.17,
+              "rej": 2.23,
+              "stk": 1.3,
+              "acc%": 54.1
+            },
+            "L6": {
+              "acc": 3.6,
+              "rej": 0.0,
+              "stk": 0.7,
+              "acc%": 83.7
+            }
+          }
+        },
+        "Case2": {
+          "avg_revenue": 863.07,
+          "avg_ho": 922.57,
+          "ratio_pct": 93.57,
+          "gap_pct": 6.43,
+          "invalid": 0,
+          "frags": 5.1,
+          "leftover": [
+            1.7,
+            0.6,
+            0.87,
+            0.53,
+            0.3,
+            1.37
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 8.8,
+              "rej": 7.53,
+              "stk": 0.2,
+              "acc%": 53.2
+            },
+            "L2": {
+              "acc": 5.9,
+              "rej": 9.1,
+              "stk": 0.3,
+              "acc%": 38.6
+            },
+            "L3": {
+              "acc": 4.17,
+              "rej": 9.57,
+              "stk": 0.2,
+              "acc%": 29.9
+            },
+            "L4": {
+              "acc": 3.77,
+              "rej": 8.5,
+              "stk": 0.2,
+              "acc%": 30.2
+            },
+            "L5": {
+              "acc": 4.13,
+              "rej": 7.37,
+              "stk": 0.1,
+              "acc%": 35.6
+            },
+            "L6": {
+              "acc": 7.63,
+              "rej": 0.13,
+              "stk": 2.7,
+              "acc%": 72.9
+            }
+          }
+        },
+        "score": 94.225,
+        "elapsed_ms": 614.48
+      },
+      "bench30_eval": {
+        "Case1": {
+          "avg_revenue": 896.73,
+          "avg_ho": 944.87,
+          "ratio_pct": 94.91,
+          "gap_pct": 5.09,
+          "invalid": 0,
+          "frags": 5.87,
+          "leftover": [
+            2.23,
+            0.2,
+            0.33,
+            0.33,
+            0.23,
+            3.13
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 14.57,
+              "rej": 6.5,
+              "stk": 1.8,
+              "acc%": 63.7
+            },
+            "L2": {
+              "acc": 9.33,
+              "rej": 8.23,
+              "stk": 2.6,
+              "acc%": 46.3
+            },
+            "L3": {
+              "acc": 6.4,
+              "rej": 6.83,
+              "stk": 2.0,
+              "acc%": 42.0
+            },
+            "L4": {
+              "acc": 5.3,
+              "rej": 4.53,
+              "stk": 1.23,
+              "acc%": 47.9
+            },
+            "L5": {
+              "acc": 3.9,
+              "rej": 2.5,
+              "stk": 1.03,
+              "acc%": 52.5
+            },
+            "L6": {
+              "acc": 3.4,
+              "rej": 0.0,
+              "stk": 0.57,
+              "acc%": 85.7
+            }
+          }
+        },
+        "Case2": {
+          "avg_revenue": 866.83,
+          "avg_ho": 926.0,
+          "ratio_pct": 93.63,
+          "gap_pct": 6.37,
+          "invalid": 0,
+          "frags": 4.37,
+          "leftover": [
+            1.4,
+            0.47,
+            0.73,
+            0.77,
+            0.33,
+            1.37
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 9.5,
+              "rej": 6.63,
+              "stk": 0.13,
+              "acc%": 58.4
+            },
+            "L2": {
+              "acc": 5.47,
+              "rej": 9.83,
+              "stk": 0.43,
+              "acc%": 34.7
+            },
+            "L3": {
+              "acc": 4.83,
+              "rej": 9.37,
+              "stk": 0.13,
+              "acc%": 33.7
+            },
+            "L4": {
+              "acc": 3.2,
+              "rej": 9.03,
+              "stk": 0.17,
+              "acc%": 25.8
+            },
+            "L5": {
+              "acc": 4.2,
+              "rej": 6.83,
+              "stk": 0.17,
+              "acc%": 37.5
+            },
+            "L6": {
+              "acc": 7.7,
+              "rej": 0.13,
+              "stk": 2.2,
+              "acc%": 76.7
+            }
+          }
+        },
+        "score": 94.27,
+        "elapsed_ms": 672.56
+      }
+    },
+    {
+      "id": "E087",
+      "tag": "Cross(E082+E067)",
+      "train_eval": {
+        "Case1": {
+          "avg_revenue": 897.1,
+          "avg_ho": 945.45,
+          "ratio_pct": 94.89,
+          "gap_pct": 5.11,
+          "invalid": 0,
+          "frags": 5.8,
+          "leftover": [
+            2.15,
+            0.1,
+            0.3,
+            0.25,
+            0.25,
+            3.15
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 14.0,
+              "rej": 6.95,
+              "stk": 2.0,
+              "acc%": 61.0
+            },
+            "L2": {
+              "acc": 9.9,
+              "rej": 8.7,
+              "stk": 2.75,
+              "acc%": 46.4
+            },
+            "L3": {
+              "acc": 6.0,
+              "rej": 7.1,
+              "stk": 1.8,
+              "acc%": 40.3
+            },
+            "L4": {
+              "acc": 5.45,
+              "rej": 4.45,
+              "stk": 0.9,
+              "acc%": 50.5
+            },
+            "L5": {
+              "acc": 3.6,
+              "rej": 2.7,
+              "stk": 0.75,
+              "acc%": 51.1
+            },
+            "L6": {
+              "acc": 3.7,
+              "rej": 0.0,
+              "stk": 0.35,
+              "acc%": 91.4
+            }
+          }
+        },
+        "Case2": {
+          "avg_revenue": 863.85,
+          "avg_ho": 924.15,
+          "ratio_pct": 93.49,
+          "gap_pct": 6.51,
+          "invalid": 0,
+          "frags": 4.8,
+          "leftover": [
+            1.6,
+            0.45,
+            0.55,
+            0.85,
+            0.2,
+            1.65
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 9.45,
+              "rej": 6.15,
+              "stk": 0.1,
+              "acc%": 60.2
+            },
+            "L2": {
+              "acc": 5.3,
+              "rej": 10.1,
+              "stk": 0.5,
+              "acc%": 33.3
+            },
+            "L3": {
+              "acc": 4.5,
+              "rej": 9.7,
+              "stk": 0.15,
+              "acc%": 31.4
+            },
+            "L4": {
+              "acc": 3.35,
+              "rej": 8.75,
+              "stk": 0.1,
+              "acc%": 27.5
+            },
+            "L5": {
+              "acc": 4.25,
+              "rej": 7.3,
+              "stk": 0.15,
+              "acc%": 36.3
+            },
+            "L6": {
+              "acc": 7.75,
+              "rej": 0.15,
+              "stk": 2.5,
+              "acc%": 74.5
+            }
+          }
+        },
+        "score": 94.19,
+        "elapsed_ms": 404.67
+      },
+      "test_eval": {
+        "Case1": {
+          "avg_revenue": 883.97,
+          "avg_ho": 932.17,
+          "ratio_pct": 94.83,
+          "gap_pct": 5.17,
+          "invalid": 0,
+          "frags": 7.17,
+          "leftover": [
+            3.2,
+            0.23,
+            0.57,
+            0.27,
+            0.2,
+            3.2
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 14.43,
+              "rej": 6.27,
+              "stk": 1.47,
+              "acc%": 65.1
+            },
+            "L2": {
+              "acc": 8.77,
+              "rej": 8.4,
+              "stk": 2.13,
+              "acc%": 45.4
+            },
+            "L3": {
+              "acc": 5.67,
+              "rej": 6.6,
+              "stk": 2.0,
+              "acc%": 39.7
+            },
+            "L4": {
+              "acc": 5.23,
+              "rej": 4.77,
+              "stk": 1.43,
+              "acc%": 45.8
+            },
+            "L5": {
+              "acc": 4.17,
+              "rej": 2.23,
+              "stk": 1.3,
+              "acc%": 54.1
+            },
+            "L6": {
+              "acc": 3.6,
+              "rej": 0.0,
+              "stk": 0.7,
+              "acc%": 83.7
+            }
+          }
+        },
+        "Case2": {
+          "avg_revenue": 863.23,
+          "avg_ho": 922.57,
+          "ratio_pct": 93.59,
+          "gap_pct": 6.41,
+          "invalid": 0,
+          "frags": 5.03,
+          "leftover": [
+            1.73,
+            0.63,
+            0.9,
+            0.5,
+            0.27,
+            1.33
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 8.8,
+              "rej": 7.53,
+              "stk": 0.2,
+              "acc%": 53.2
+            },
+            "L2": {
+              "acc": 5.93,
+              "rej": 9.1,
+              "stk": 0.27,
+              "acc%": 38.8
+            },
+            "L3": {
+              "acc": 4.2,
+              "rej": 9.53,
+              "stk": 0.2,
+              "acc%": 30.1
+            },
+            "L4": {
+              "acc": 3.77,
+              "rej": 8.5,
+              "stk": 0.2,
+              "acc%": 30.2
+            },
+            "L5": {
+              "acc": 4.1,
+              "rej": 7.4,
+              "stk": 0.1,
+              "acc%": 35.3
+            },
+            "L6": {
+              "acc": 7.63,
+              "rej": 0.13,
+              "stk": 2.7,
+              "acc%": 72.9
+            }
+          }
+        },
+        "score": 94.21,
+        "elapsed_ms": 599.38
+      },
+      "bench30_eval": {
+        "Case1": {
+          "avg_revenue": 896.83,
+          "avg_ho": 944.87,
+          "ratio_pct": 94.92,
+          "gap_pct": 5.08,
+          "invalid": 0,
+          "frags": 5.83,
+          "leftover": [
+            2.23,
+            0.2,
+            0.33,
+            0.3,
+            0.23,
+            3.13
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 14.5,
+              "rej": 6.53,
+              "stk": 1.83,
+              "acc%": 63.4
+            },
+            "L2": {
+              "acc": 9.37,
+              "rej": 8.2,
+              "stk": 2.6,
+              "acc%": 46.4
+            },
+            "L3": {
+              "acc": 6.4,
+              "rej": 6.83,
+              "stk": 2.0,
+              "acc%": 42.0
+            },
+            "L4": {
+              "acc": 5.27,
+              "rej": 4.57,
+              "stk": 1.23,
+              "acc%": 47.6
+            },
+            "L5": {
+              "acc": 3.93,
+              "rej": 2.47,
+              "stk": 1.03,
+              "acc%": 52.9
+            },
+            "L6": {
+              "acc": 3.4,
+              "rej": 0.0,
+              "stk": 0.57,
+              "acc%": 85.7
+            }
+          }
+        },
+        "Case2": {
+          "avg_revenue": 866.33,
+          "avg_ho": 926.0,
+          "ratio_pct": 93.58,
+          "gap_pct": 6.42,
+          "invalid": 0,
+          "frags": 4.5,
+          "leftover": [
+            1.33,
+            0.47,
+            0.77,
+            0.8,
+            0.4,
+            1.43
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 9.57,
+              "rej": 6.57,
+              "stk": 0.13,
+              "acc%": 58.8
+            },
+            "L2": {
+              "acc": 5.5,
+              "rej": 9.8,
+              "stk": 0.43,
+              "acc%": 35.0
+            },
+            "L3": {
+              "acc": 4.83,
+              "rej": 9.37,
+              "stk": 0.13,
+              "acc%": 33.7
+            },
+            "L4": {
+              "acc": 3.23,
+              "rej": 9.0,
+              "stk": 0.17,
+              "acc%": 26.1
+            },
+            "L5": {
+              "acc": 4.2,
+              "rej": 6.83,
+              "stk": 0.17,
+              "acc%": 37.5
+            },
+            "L6": {
+              "acc": 7.63,
+              "rej": 0.2,
+              "stk": 2.2,
+              "acc%": 76.1
+            }
+          }
+        },
+        "score": 94.25,
+        "elapsed_ms": 612.29
+      }
+    },
+    {
+      "id": "E082",
+      "tag": "Cross(E078+E061)",
+      "train_eval": {
+        "Case1": {
+          "avg_revenue": 896.75,
+          "avg_ho": 945.45,
+          "ratio_pct": 94.86,
+          "gap_pct": 5.14,
+          "invalid": 0,
+          "frags": 5.8,
+          "leftover": [
+            2.1,
+            0.1,
+            0.3,
+            0.3,
+            0.25,
+            3.15
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 13.9,
+              "rej": 7.1,
+              "stk": 1.95,
+              "acc%": 60.6
+            },
+            "L2": {
+              "acc": 9.85,
+              "rej": 8.75,
+              "stk": 2.75,
+              "acc%": 46.1
+            },
+            "L3": {
+              "acc": 6.0,
+              "rej": 7.1,
+              "stk": 1.8,
+              "acc%": 40.3
+            },
+            "L4": {
+              "acc": 5.5,
+              "rej": 4.4,
+              "stk": 0.9,
+              "acc%": 50.9
+            },
+            "L5": {
+              "acc": 3.6,
+              "rej": 2.7,
+              "stk": 0.75,
+              "acc%": 51.1
+            },
+            "L6": {
+              "acc": 3.7,
+              "rej": 0.0,
+              "stk": 0.35,
+              "acc%": 91.4
+            }
+          }
+        },
+        "Case2": {
+          "avg_revenue": 864.0,
+          "avg_ho": 924.15,
+          "ratio_pct": 93.5,
+          "gap_pct": 6.5,
+          "invalid": 0,
+          "frags": 4.65,
+          "leftover": [
+            1.65,
+            0.45,
+            0.5,
+            0.8,
+            0.2,
+            1.65
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 9.4,
+              "rej": 6.2,
+              "stk": 0.1,
+              "acc%": 59.9
+            },
+            "L2": {
+              "acc": 5.25,
+              "rej": 10.15,
+              "stk": 0.5,
+              "acc%": 33.0
+            },
+            "L3": {
+              "acc": 4.55,
+              "rej": 9.65,
+              "stk": 0.15,
+              "acc%": 31.7
+            },
+            "L4": {
+              "acc": 3.3,
+              "rej": 8.8,
+              "stk": 0.1,
+              "acc%": 27.0
+            },
+            "L5": {
+              "acc": 4.3,
+              "rej": 7.25,
+              "stk": 0.15,
+              "acc%": 36.8
+            },
+            "L6": {
+              "acc": 7.75,
+              "rej": 0.1,
+              "stk": 2.55,
+              "acc%": 74.5
+            }
+          }
+        },
+        "score": 94.18,
+        "elapsed_ms": 417.95
+      },
+      "test_eval": {
+        "Case1": {
+          "avg_revenue": 884.33,
+          "avg_ho": 932.17,
+          "ratio_pct": 94.87,
+          "gap_pct": 5.13,
+          "invalid": 0,
+          "frags": 7.13,
+          "leftover": [
+            3.27,
+            0.23,
+            0.53,
+            0.27,
+            0.2,
+            3.13
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 14.27,
+              "rej": 6.43,
+              "stk": 1.47,
+              "acc%": 64.4
+            },
+            "L2": {
+              "acc": 8.93,
+              "rej": 8.27,
+              "stk": 2.1,
+              "acc%": 46.3
+            },
+            "L3": {
+              "acc": 5.73,
+              "rej": 6.6,
+              "stk": 1.93,
+              "acc%": 40.2
+            },
+            "L4": {
+              "acc": 5.23,
+              "rej": 4.83,
+              "stk": 1.37,
+              "acc%": 45.8
+            },
+            "L5": {
+              "acc": 4.1,
+              "rej": 2.3,
+              "stk": 1.3,
+              "acc%": 53.2
+            },
+            "L6": {
+              "acc": 3.6,
+              "rej": 0.0,
+              "stk": 0.7,
+              "acc%": 83.7
+            }
+          }
+        },
+        "Case2": {
+          "avg_revenue": 864.27,
+          "avg_ho": 922.57,
+          "ratio_pct": 93.7,
+          "gap_pct": 6.3,
+          "invalid": 0,
+          "frags": 4.97,
+          "leftover": [
+            1.7,
+            0.6,
+            0.8,
+            0.47,
+            0.3,
+            1.37
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 8.8,
+              "rej": 7.53,
+              "stk": 0.2,
+              "acc%": 53.2
+            },
+            "L2": {
+              "acc": 5.93,
+              "rej": 9.03,
+              "stk": 0.33,
+              "acc%": 38.8
+            },
+            "L3": {
+              "acc": 4.17,
+              "rej": 9.57,
+              "stk": 0.2,
+              "acc%": 29.9
+            },
+            "L4": {
+              "acc": 3.83,
+              "rej": 8.43,
+              "stk": 0.2,
+              "acc%": 30.7
+            },
+            "L5": {
+              "acc": 4.13,
+              "rej": 7.37,
+              "stk": 0.1,
+              "acc%": 35.6
+            },
+            "L6": {
+              "acc": 7.6,
+              "rej": 0.1,
+              "stk": 2.77,
+              "acc%": 72.6
+            }
+          }
+        },
+        "score": 94.285,
+        "elapsed_ms": 626.12
+      },
+      "bench30_eval": {
+        "Case1": {
+          "avg_revenue": 896.87,
+          "avg_ho": 944.87,
+          "ratio_pct": 94.93,
+          "gap_pct": 5.07,
+          "invalid": 0,
+          "frags": 5.83,
+          "leftover": [
+            2.17,
+            0.2,
+            0.33,
+            0.33,
+            0.23,
+            3.13
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 14.4,
+              "rej": 6.63,
+              "stk": 1.83,
+              "acc%": 63.0
+            },
+            "L2": {
+              "acc": 9.33,
+              "rej": 8.23,
+              "stk": 2.6,
+              "acc%": 46.3
+            },
+            "L3": {
+              "acc": 6.43,
+              "rej": 6.8,
+              "stk": 2.0,
+              "acc%": 42.2
+            },
+            "L4": {
+              "acc": 5.33,
+              "rej": 4.5,
+              "stk": 1.23,
+              "acc%": 48.2
+            },
+            "L5": {
+              "acc": 3.9,
+              "rej": 2.5,
+              "stk": 1.03,
+              "acc%": 52.5
+            },
+            "L6": {
+              "acc": 3.4,
+              "rej": 0.0,
+              "stk": 0.57,
+              "acc%": 85.7
+            }
+          }
+        },
+        "Case2": {
+          "avg_revenue": 865.2,
+          "avg_ho": 926.0,
+          "ratio_pct": 93.45,
+          "gap_pct": 6.55,
+          "invalid": 0,
+          "frags": 4.53,
+          "leftover": [
+            1.5,
+            0.5,
+            0.7,
+            0.77,
+            0.43,
+            1.4
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 9.47,
+              "rej": 6.7,
+              "stk": 0.1,
+              "acc%": 58.2
+            },
+            "L2": {
+              "acc": 5.4,
+              "rej": 9.87,
+              "stk": 0.47,
+              "acc%": 34.3
+            },
+            "L3": {
+              "acc": 4.9,
+              "rej": 9.3,
+              "stk": 0.13,
+              "acc%": 34.2
+            },
+            "L4": {
+              "acc": 3.27,
+              "rej": 8.97,
+              "stk": 0.17,
+              "acc%": 26.3
+            },
+            "L5": {
+              "acc": 4.13,
+              "rej": 6.9,
+              "stk": 0.17,
+              "acc%": 36.9
+            },
+            "L6": {
+              "acc": 7.67,
+              "rej": 0.1,
+              "stk": 2.27,
+              "acc%": 76.4
+            }
+          }
+        },
+        "score": 94.19,
+        "elapsed_ms": 608.26
+      }
+    }
+  ],
+  "trajectory": [
+    {
+      "eval_num": 1,
+      "id": "E001",
+      "op": "explore_paradigm",
+      "tag": "P2_纯Python次梯度对偶_BPCM",
+      "status": "ok",
+      "train_score": 87.425,
+      "train_c1": 89.77,
+      "train_c2": 85.08,
+      "test_score": 88.355
+    },
+    {
+      "eval_num": 2,
+      "id": "E002",
+      "op": "explore_paradigm",
+      "tag": "P1_纯Python最小费用流_BPCA_碎片感知",
+      "status": "ok",
+      "train_score": 83.965,
+      "train_c1": 87.03,
+      "train_c2": 80.9,
+      "test_score": 85.705
+    },
+    {
+      "eval_num": 3,
+      "id": "E003",
+      "op": "explore_paradigm",
+      "tag": "P5_多阶段动态护留与连续性价值",
+      "status": "ok",
+      "train_score": 71.695,
+      "train_c1": 71.7,
+      "train_c2": 71.69,
+      "test_score": 71.255
+    },
+    {
+      "eval_num": 4,
+      "id": "E004",
+      "op": "explore_paradigm",
+      "tag": "P4_严格分裂流体前向推演_Rollout",
+      "status": "ok",
+      "train_score": 81.825,
+      "train_c1": 84.77,
+      "train_c2": 78.88,
+      "test_score": 81.205
+    },
+    {
+      "eval_num": 5,
+      "id": "E005",
+      "op": "explore_paradigm",
+      "tag": "P3_纯Python动态原问题近似_RDP",
+      "status": "ok",
+      "train_score": 78.67,
+      "train_c1": 81.93,
+      "train_c2": 75.41,
+      "test_score": 78.855
+    },
+    {
+      "eval_num": 6,
+      "id": "E006",
+      "op": "hyper_tune",
+      "tag": "Tune(S2)",
+      "status": "ok",
+      "train_score": 89.92,
+      "train_c1": 91.18,
+      "train_c2": 88.66,
+      "test_score": 90.575
+    },
+    {
+      "eval_num": 7,
+      "id": "E007",
+      "op": "crossover",
+      "tag": "Cross(S2+S1)",
+      "status": "ok",
+      "train_score": 88.835,
+      "train_c1": 89.96,
+      "train_c2": 87.71,
+      "test_score": 89.625
+    },
+    {
+      "eval_num": 8,
+      "id": "E008",
+      "op": "refine_diagnostics",
+      "tag": "Refine(S2)",
+      "status": "ok",
+      "train_score": 87.78,
+      "train_c1": 90.01,
+      "train_c2": 85.55,
+      "test_score": 88.58
+    },
+    {
+      "eval_num": 9,
+      "id": "E009",
+      "op": "explore_paradigm",
+      "tag": "P6_方差修正流体与在线双界混合",
+      "status": "ok",
+      "train_score": 65.32,
+      "train_c1": 72.88,
+      "train_c2": 57.76,
+      "test_score": null
+    },
+    {
+      "eval_num": 10,
+      "id": "E010",
+      "op": "refine_diagnostics",
+      "tag": "Refine(S2)",
+      "status": "ok",
+      "train_score": 87.24,
+      "train_c1": 89.53,
+      "train_c2": 84.95,
+      "test_score": null
+    },
+    {
+      "eval_num": 11,
+      "id": "E011",
+      "op": "crossover",
+      "tag": "Cross(E006+E008)",
+      "status": "ok",
+      "train_score": 90.305,
+      "train_c1": 91.09,
+      "train_c2": 89.52,
+      "test_score": 90.815
+    },
+    {
+      "eval_num": 12,
+      "id": "E012",
+      "op": "hyper_tune",
+      "tag": "Tune(E006)",
+      "status": "ok",
+      "train_score": 32.975,
+      "train_c1": 28.19,
+      "train_c2": 37.76,
+      "test_score": null
+    },
+    {
+      "eval_num": 13,
+      "id": "E013",
+      "op": "explore_paradigm",
+      "tag": "P5_多阶段动态护留与连续性价值",
+      "status": "ok",
+      "train_score": 88.4,
+      "train_c1": 92.3,
+      "train_c2": 84.5,
+      "test_score": 88.475
+    },
+    {
+      "eval_num": 14,
+      "id": "E014",
+      "op": "refine_diagnostics",
+      "tag": "Refine(S2)",
+      "status": "ok",
+      "train_score": 87.885,
+      "train_c1": 89.82,
+      "train_c2": 85.95,
+      "test_score": null
+    },
+    {
+      "eval_num": 15,
+      "id": "E015",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E006)",
+      "status": "ok",
+      "train_score": 87.82,
+      "train_c1": 89.91,
+      "train_c2": 85.73,
+      "test_score": null
+    },
+    {
+      "eval_num": 16,
+      "id": "E016",
+      "op": "crossover",
+      "tag": "Cross(E011+S1)",
+      "status": "ok",
+      "train_score": 90.305,
+      "train_c1": 91.09,
+      "train_c2": 89.52,
+      "test_score": 90.815
+    },
+    {
+      "eval_num": 17,
+      "id": "E017",
+      "op": "explore_paradigm",
+      "tag": "P4_严格分裂流体前向推演_Rollout",
+      "status": "eval_error",
+      "train_score": null,
+      "train_c1": null,
+      "train_c2": null,
+      "test_score": null
+    },
+    {
+      "eval_num": 18,
+      "id": "E018",
+      "op": "hyper_tune",
+      "tag": "Tune(E011)",
+      "status": "ok",
+      "train_score": 89.245,
+      "train_c1": 90.59,
+      "train_c2": 87.9,
+      "test_score": 89.88
+    },
+    {
+      "eval_num": 19,
+      "id": "E019",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E006)",
+      "status": "ok",
+      "train_score": 90.285,
+      "train_c1": 91.54,
+      "train_c2": 89.03,
+      "test_score": 90.72
+    },
+    {
+      "eval_num": 20,
+      "id": "E020",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E011)",
+      "status": "ok",
+      "train_score": 90.45,
+      "train_c1": 91.23,
+      "train_c2": 89.67,
+      "test_score": 90.86
+    },
+    {
+      "eval_num": 21,
+      "id": "E021",
+      "op": "crossover",
+      "tag": "Cross(E020+E019)",
+      "status": "ok",
+      "train_score": 90.585,
+      "train_c1": 91.41,
+      "train_c2": 89.76,
+      "test_score": 90.92
+    },
+    {
+      "eval_num": 22,
+      "id": "E022",
+      "op": "hyper_tune",
+      "tag": "Tune(E020)",
+      "status": "ok",
+      "train_score": 90.45,
+      "train_c1": 91.23,
+      "train_c2": 89.67,
+      "test_score": 90.86
+    },
+    {
+      "eval_num": 23,
+      "id": "E023",
+      "op": "explore_paradigm",
+      "tag": "P3_纯Python动态原问题近似_RDP",
+      "status": "ok",
+      "train_score": 85.68,
+      "train_c1": 88.96,
+      "train_c2": 82.4,
+      "test_score": null
+    },
+    {
+      "eval_num": 24,
+      "id": "E024",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E016)",
+      "status": "eval_error",
+      "train_score": null,
+      "train_c1": null,
+      "train_c2": null,
+      "test_score": null
+    },
+    {
+      "eval_num": 25,
+      "id": "E025",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E020)",
+      "status": "ok",
+      "train_score": 56.115,
+      "train_c1": 33.36,
+      "train_c2": 78.87,
+      "test_score": null
+    },
+    {
+      "eval_num": 26,
+      "id": "E026",
+      "op": "crossover",
+      "tag": "Cross(E021+E016)",
+      "status": "ok",
+      "train_score": 90.585,
+      "train_c1": 91.41,
+      "train_c2": 89.76,
+      "test_score": 90.92
+    },
+    {
+      "eval_num": 27,
+      "id": "E027",
+      "op": "explore_paradigm",
+      "tag": "P2_纯Python次梯度对偶_BPCM",
+      "status": "ok",
+      "train_score": 83.515,
+      "train_c1": 88.36,
+      "train_c2": 78.67,
+      "test_score": null
+    },
+    {
+      "eval_num": 28,
+      "id": "E028",
+      "op": "hyper_tune",
+      "tag": "Tune(E021)",
+      "status": "ok",
+      "train_score": 90.67,
+      "train_c1": 91.78,
+      "train_c2": 89.56,
+      "test_score": 90.87
+    },
+    {
+      "eval_num": 29,
+      "id": "E029",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E021)",
+      "status": "ok",
+      "train_score": 87.7,
+      "train_c1": 90.06,
+      "train_c2": 85.34,
+      "test_score": null
+    },
+    {
+      "eval_num": 30,
+      "id": "E030",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E021)",
+      "status": "ok",
+      "train_score": 89.51,
+      "train_c1": 90.69,
+      "train_c2": 88.33,
+      "test_score": null
+    },
+    {
+      "eval_num": 31,
+      "id": "E031",
+      "op": "hyper_tune",
+      "tag": "Tune(E028)",
+      "status": "ok",
+      "train_score": 90.085,
+      "train_c1": 91.58,
+      "train_c2": 88.59,
+      "test_score": 90.39
+    },
+    {
+      "eval_num": 32,
+      "id": "E032",
+      "op": "crossover",
+      "tag": "Cross(E028+E019)",
+      "status": "ok",
+      "train_score": 90.485,
+      "train_c1": 91.62,
+      "train_c2": 89.35,
+      "test_score": 90.835
+    },
+    {
+      "eval_num": 33,
+      "id": "E033",
+      "op": "explore_paradigm",
+      "tag": "P1_纯Python最小费用流_BPCA_碎片感知",
+      "status": "ok",
+      "train_score": 75.66,
+      "train_c1": 72.44,
+      "train_c2": 78.88,
+      "test_score": null
+    },
+    {
+      "eval_num": 34,
+      "id": "E034",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E028)",
+      "status": "ok",
+      "train_score": 93.29,
+      "train_c1": 93.88,
+      "train_c2": 92.7,
+      "test_score": 93.65
+    },
+    {
+      "eval_num": 35,
+      "id": "E035",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E028)",
+      "status": "eval_error",
+      "train_score": null,
+      "train_c1": null,
+      "train_c2": null,
+      "test_score": null
+    },
+    {
+      "eval_num": 36,
+      "id": "E036",
+      "op": "explore_paradigm",
+      "tag": "P6_方差修正流体与在线双界混合",
+      "status": "ok",
+      "train_score": 8.635,
+      "train_c1": 9.92,
+      "train_c2": 7.35,
+      "test_score": null
+    },
+    {
+      "eval_num": 37,
+      "id": "E037",
+      "op": "crossover",
+      "tag": "Cross(E034+E026)",
+      "status": "ok",
+      "train_score": 93.29,
+      "train_c1": 93.88,
+      "train_c2": 92.7,
+      "test_score": 93.65
+    },
+    {
+      "eval_num": 38,
+      "id": "E038",
+      "op": "hyper_tune",
+      "tag": "Tune(E034)",
+      "status": "eval_error",
+      "train_score": null,
+      "train_c1": null,
+      "train_c2": null,
+      "test_score": null
+    },
+    {
+      "eval_num": 39,
+      "id": "E039",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E034)",
+      "status": "ok",
+      "train_score": 90.49,
+      "train_c1": 94.93,
+      "train_c2": 86.05,
+      "test_score": 90.835
+    },
+    {
+      "eval_num": 40,
+      "id": "E040",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E034)",
+      "status": "ok",
+      "train_score": 88.925,
+      "train_c1": 93.55,
+      "train_c2": 84.3,
+      "test_score": null
+    },
+    {
+      "eval_num": 41,
+      "id": "E041",
+      "op": "crossover",
+      "tag": "Cross(E037+E039)",
+      "status": "ok",
+      "train_score": 90.13,
+      "train_c1": 94.48,
+      "train_c2": 85.78,
+      "test_score": null
+    },
+    {
+      "eval_num": 42,
+      "id": "E042",
+      "op": "hyper_tune",
+      "tag": "Tune(E037)",
+      "status": "ok",
+      "train_score": 92.115,
+      "train_c1": 93.89,
+      "train_c2": 90.34,
+      "test_score": 92.25
+    },
+    {
+      "eval_num": 43,
+      "id": "E043",
+      "op": "explore_paradigm",
+      "tag": "P5_多阶段动态护留与连续性价值",
+      "status": "ok",
+      "train_score": 82.15,
+      "train_c1": 84.66,
+      "train_c2": 79.64,
+      "test_score": null
+    },
+    {
+      "eval_num": 44,
+      "id": "E044",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E037)",
+      "status": "ok",
+      "train_score": 86.075,
+      "train_c1": 90.15,
+      "train_c2": 82.0,
+      "test_score": null
+    },
+    {
+      "eval_num": 45,
+      "id": "E045",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E037)",
+      "status": "ok",
+      "train_score": 92.795,
+      "train_c1": 93.44,
+      "train_c2": 92.15,
+      "test_score": 93.305
+    },
+    {
+      "eval_num": 46,
+      "id": "E046",
+      "op": "crossover",
+      "tag": "Cross(E037+E039)",
+      "status": "ok",
+      "train_score": 90.31,
+      "train_c1": 94.81,
+      "train_c2": 85.81,
+      "test_score": null
+    },
+    {
+      "eval_num": 47,
+      "id": "E047",
+      "op": "hyper_tune",
+      "tag": "Tune(E037)",
+      "status": "ok",
+      "train_score": 92.665,
+      "train_c1": 93.32,
+      "train_c2": 92.01,
+      "test_score": 92.925
+    },
+    {
+      "eval_num": 48,
+      "id": "E048",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E037)",
+      "status": "ok",
+      "train_score": 93.17,
+      "train_c1": 93.76,
+      "train_c2": 92.58,
+      "test_score": 93.46
+    },
+    {
+      "eval_num": 49,
+      "id": "E049",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E037)",
+      "status": "ok",
+      "train_score": 92.855,
+      "train_c1": 93.57,
+      "train_c2": 92.14,
+      "test_score": 92.785
+    },
+    {
+      "eval_num": 50,
+      "id": "E050",
+      "op": "explore_paradigm",
+      "tag": "P4_严格分裂流体前向推演_Rollout",
+      "status": "ok",
+      "train_score": 92.425,
+      "train_c1": 92.73,
+      "train_c2": 92.12,
+      "test_score": 93.05
+    },
+    {
+      "eval_num": 51,
+      "id": "E051",
+      "op": "explore_paradigm",
+      "tag": "P3_纯Python动态原问题近似_RDP",
+      "status": "ok",
+      "train_score": 84.085,
+      "train_c1": 85.49,
+      "train_c2": 82.68,
+      "test_score": null
+    },
+    {
+      "eval_num": 52,
+      "id": "E052",
+      "op": "crossover",
+      "tag": "Cross(E037+E047)",
+      "status": "ok",
+      "train_score": 92.935,
+      "train_c1": 93.56,
+      "train_c2": 92.31,
+      "test_score": 93.21
+    },
+    {
+      "eval_num": 53,
+      "id": "E053",
+      "op": "hyper_tune",
+      "tag": "Tune(E037)",
+      "status": "ok",
+      "train_score": 92.845,
+      "train_c1": 93.62,
+      "train_c2": 92.07,
+      "test_score": 93.115
+    },
+    {
+      "eval_num": 54,
+      "id": "E054",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E037)",
+      "status": "ok",
+      "train_score": 87.41,
+      "train_c1": 89.81,
+      "train_c2": 85.01,
+      "test_score": null
+    },
+    {
+      "eval_num": 55,
+      "id": "E055",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E037)",
+      "status": "ok",
+      "train_score": 87.475,
+      "train_c1": 89.83,
+      "train_c2": 85.12,
+      "test_score": null
+    },
+    {
+      "eval_num": 56,
+      "id": "E056",
+      "op": "hyper_tune",
+      "tag": "Tune(E037)",
+      "status": "ok",
+      "train_score": 92.88,
+      "train_c1": 94.0,
+      "train_c2": 91.76,
+      "test_score": 93.05
+    },
+    {
+      "eval_num": 57,
+      "id": "E057",
+      "op": "crossover",
+      "tag": "Cross(E037+E052)",
+      "status": "ok",
+      "train_score": 93.185,
+      "train_c1": 94.33,
+      "train_c2": 92.04,
+      "test_score": 93.72
+    },
+    {
+      "eval_num": 58,
+      "id": "E058",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E037)",
+      "status": "ok",
+      "train_score": 92.865,
+      "train_c1": 93.47,
+      "train_c2": 92.26,
+      "test_score": 93.57
+    },
+    {
+      "eval_num": 59,
+      "id": "E059",
+      "op": "explore_paradigm",
+      "tag": "P2_纯Python次梯度对偶_BPCM",
+      "status": "ok",
+      "train_score": 87.64,
+      "train_c1": 90.4,
+      "train_c2": 84.88,
+      "test_score": null
+    },
+    {
+      "eval_num": 60,
+      "id": "E060",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E037)",
+      "status": "ok",
+      "train_score": 93.275,
+      "train_c1": 93.82,
+      "train_c2": 92.73,
+      "test_score": 93.61
+    },
+    {
+      "eval_num": 61,
+      "id": "E061",
+      "op": "hyper_tune",
+      "tag": "Tune(E037)",
+      "status": "ok",
+      "train_score": 93.845,
+      "train_c1": 94.67,
+      "train_c2": 93.02,
+      "test_score": 94.015
+    },
+    {
+      "eval_num": 62,
+      "id": "E062",
+      "op": "crossover",
+      "tag": "Cross(E037+E056)",
+      "status": "ok",
+      "train_score": 92.88,
+      "train_c1": 94.0,
+      "train_c2": 91.76,
+      "test_score": null
+    },
+    {
+      "eval_num": 63,
+      "id": "E063",
+      "op": "explore_paradigm",
+      "tag": "P1_纯Python最小费用流_BPCA_碎片感知",
+      "status": "ok",
+      "train_score": 77.47,
+      "train_c1": 76.06,
+      "train_c2": 78.88,
+      "test_score": null
+    },
+    {
+      "eval_num": 64,
+      "id": "E064",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E037)",
+      "status": "ok",
+      "train_score": 90.805,
+      "train_c1": 91.34,
+      "train_c2": 90.27,
+      "test_score": null
+    },
+    {
+      "eval_num": 65,
+      "id": "E065",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E037)",
+      "status": "ok",
+      "train_score": 90.97,
+      "train_c1": 94.4,
+      "train_c2": 87.54,
+      "test_score": null
+    },
+    {
+      "eval_num": 66,
+      "id": "E066",
+      "op": "hyper_tune",
+      "tag": "Tune(E061)",
+      "status": "ok",
+      "train_score": 93.65,
+      "train_c1": 94.33,
+      "train_c2": 92.97,
+      "test_score": 93.77
+    },
+    {
+      "eval_num": 67,
+      "id": "E067",
+      "op": "crossover",
+      "tag": "Cross(E061+E048)",
+      "status": "ok",
+      "train_score": 94.055,
+      "train_c1": 94.72,
+      "train_c2": 93.39,
+      "test_score": 94.26
+    },
+    {
+      "eval_num": 68,
+      "id": "E068",
+      "op": "explore_paradigm",
+      "tag": "P6_方差修正流体与在线双界混合",
+      "status": "ok",
+      "train_score": 0.0,
+      "train_c1": 0.0,
+      "train_c2": 0.0,
+      "test_score": null
+    },
+    {
+      "eval_num": 69,
+      "id": "E069",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E061)",
+      "status": "ok",
+      "train_score": 91.885,
+      "train_c1": 93.3,
+      "train_c2": 90.47,
+      "test_score": null
+    },
+    {
+      "eval_num": 70,
+      "id": "E070",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E061)",
+      "status": "ok",
+      "train_score": 92.085,
+      "train_c1": 93.26,
+      "train_c2": 90.91,
+      "test_score": null
+    },
+    {
+      "eval_num": 71,
+      "id": "E071",
+      "op": "explore_paradigm",
+      "tag": "P5_多阶段动态护留与连续性价值",
+      "status": "ok",
+      "train_score": 80.565,
+      "train_c1": 84.72,
+      "train_c2": 76.41,
+      "test_score": null
+    },
+    {
+      "eval_num": 72,
+      "id": "E072",
+      "op": "crossover",
+      "tag": "Cross(E067+E061)",
+      "status": "ok",
+      "train_score": 94.165,
+      "train_c1": 94.86,
+      "train_c2": 93.47,
+      "test_score": 94.32
+    },
+    {
+      "eval_num": 73,
+      "id": "E073",
+      "op": "hyper_tune",
+      "tag": "Tune(E067)",
+      "status": "ok",
+      "train_score": 93.63,
+      "train_c1": 94.4,
+      "train_c2": 92.86,
+      "test_score": 94.075
+    },
+    {
+      "eval_num": 74,
+      "id": "E074",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E061)",
+      "status": "ok",
+      "train_score": 90.305,
+      "train_c1": 91.55,
+      "train_c2": 89.06,
+      "test_score": null
+    },
+    {
+      "eval_num": 75,
+      "id": "E075",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E067)",
+      "status": "ok",
+      "train_score": 86.525,
+      "train_c1": 89.3,
+      "train_c2": 83.75,
+      "test_score": null
+    },
+    {
+      "eval_num": 76,
+      "id": "E076",
+      "op": "explore_paradigm",
+      "tag": "P4_严格分裂流体前向推演_Rollout",
+      "status": "ok",
+      "train_score": 35.905,
+      "train_c1": 28.31,
+      "train_c2": 43.5,
+      "test_score": null
+    },
+    {
+      "eval_num": 77,
+      "id": "E077",
+      "op": "crossover",
+      "tag": "Cross(E072+E037)",
+      "status": "ok",
+      "train_score": 94.105,
+      "train_c1": 94.82,
+      "train_c2": 93.39,
+      "test_score": 94.12
+    },
+    {
+      "eval_num": 78,
+      "id": "E078",
+      "op": "hyper_tune",
+      "tag": "Tune(E072)",
+      "status": "ok",
+      "train_score": 94.18,
+      "train_c1": 94.86,
+      "train_c2": 93.5,
+      "test_score": 94.285
+    },
+    {
+      "eval_num": 79,
+      "id": "E079",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E072)",
+      "status": "ok",
+      "train_score": 94.08,
+      "train_c1": 94.86,
+      "train_c2": 93.3,
+      "test_score": 94.315
+    },
+    {
+      "eval_num": 80,
+      "id": "E080",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E061)",
+      "status": "ok",
+      "train_score": 88.37,
+      "train_c1": 89.75,
+      "train_c2": 86.99,
+      "test_score": null
+    },
+    {
+      "eval_num": 81,
+      "id": "E081",
+      "op": "explore_paradigm",
+      "tag": "P3_纯Python动态原问题近似_RDP",
+      "status": "ok",
+      "train_score": 70.18,
+      "train_c1": 64.19,
+      "train_c2": 76.17,
+      "test_score": null
+    },
+    {
+      "eval_num": 82,
+      "id": "E082",
+      "op": "crossover",
+      "tag": "Cross(E078+E061)",
+      "status": "ok",
+      "train_score": 94.18,
+      "train_c1": 94.86,
+      "train_c2": 93.5,
+      "test_score": 94.285
+    },
+    {
+      "eval_num": 83,
+      "id": "E083",
+      "op": "hyper_tune",
+      "tag": "Tune(E078)",
+      "status": "ok",
+      "train_score": 93.43,
+      "train_c1": 94.09,
+      "train_c2": 92.77,
+      "test_score": null
+    },
+    {
+      "eval_num": 84,
+      "id": "E084",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E078)",
+      "status": "ok",
+      "train_score": 93.945,
+      "train_c1": 94.98,
+      "train_c2": 92.91,
+      "test_score": 93.93
+    },
+    {
+      "eval_num": 85,
+      "id": "E085",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E078)",
+      "status": "eval_error",
+      "train_score": null,
+      "train_c1": null,
+      "train_c2": null,
+      "test_score": null
+    },
+    {
+      "eval_num": 86,
+      "id": "E086",
+      "op": "explore_paradigm",
+      "tag": "P2_纯Python次梯度对偶_BPCM",
+      "status": "ok",
+      "train_score": 69.23,
+      "train_c1": 76.62,
+      "train_c2": 61.84,
+      "test_score": null
+    },
+    {
+      "eval_num": 87,
+      "id": "E087",
+      "op": "crossover",
+      "tag": "Cross(E082+E067)",
+      "status": "ok",
+      "train_score": 94.19,
+      "train_c1": 94.89,
+      "train_c2": 93.49,
+      "test_score": 94.21
+    },
+    {
+      "eval_num": 88,
+      "id": "E088",
+      "op": "hyper_tune",
+      "tag": "Tune(E082)",
+      "status": "ok",
+      "train_score": 92.575,
+      "train_c1": 92.95,
+      "train_c2": 92.2,
+      "test_score": null
+    },
+    {
+      "eval_num": 89,
+      "id": "E089",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E077)",
+      "status": "ok",
+      "train_score": 90.06,
+      "train_c1": 90.62,
+      "train_c2": 89.5,
+      "test_score": null
+    },
+    {
+      "eval_num": 90,
+      "id": "E090",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E082)",
+      "status": "eval_error",
+      "train_score": null,
+      "train_c1": null,
+      "train_c2": null,
+      "test_score": null
+    },
+    {
+      "eval_num": 91,
+      "id": "E091",
+      "op": "hyper_tune",
+      "tag": "Tune(E087)",
+      "status": "ok",
+      "train_score": 94.035,
+      "train_c1": 94.87,
+      "train_c2": 93.2,
+      "test_score": null
+    },
+    {
+      "eval_num": 92,
+      "id": "E092",
+      "op": "crossover",
+      "tag": "Cross(E087+E079)",
+      "status": "ok",
+      "train_score": 94.055,
+      "train_c1": 94.89,
+      "train_c2": 93.22,
+      "test_score": null
+    },
+    {
+      "eval_num": 93,
+      "id": "E093",
+      "op": "explore_paradigm",
+      "tag": "P1_纯Python最小费用流_BPCA_碎片感知",
+      "status": "ok",
+      "train_score": 87.015,
+      "train_c1": 89.43,
+      "train_c2": 84.6,
+      "test_score": null
+    },
+    {
+      "eval_num": 94,
+      "id": "E094",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E072)",
+      "status": "eval_error",
+      "train_score": null,
+      "train_c1": null,
+      "train_c2": null,
+      "test_score": null
+    },
+    {
+      "eval_num": 95,
+      "id": "E095",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E087)",
+      "status": "eval_error",
+      "train_score": null,
+      "train_c1": null,
+      "train_c2": null,
+      "test_score": null
+    },
+    {
+      "eval_num": 96,
+      "id": "E096",
+      "op": "hyper_tune",
+      "tag": "Tune(E087)",
+      "status": "ok",
+      "train_score": 94.025,
+      "train_c1": 94.81,
+      "train_c2": 93.24,
+      "test_score": null
+    },
+    {
+      "eval_num": 97,
+      "id": "E097",
+      "op": "crossover",
+      "tag": "Cross(E087+E082)",
+      "status": "ok",
+      "train_score": 94.22,
+      "train_c1": 94.88,
+      "train_c2": 93.56,
+      "test_score": 94.225
+    },
+    {
+      "eval_num": 98,
+      "id": "E098",
+      "op": "explore_paradigm",
+      "tag": "P6_方差修正流体与在线双界混合",
+      "status": "ok",
+      "train_score": 88.0,
+      "train_c1": 93.15,
+      "train_c2": 82.85,
+      "test_score": null
+    },
+    {
+      "eval_num": 99,
+      "id": "E099",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E087)",
+      "status": "eval_error",
+      "train_score": null,
+      "train_c1": null,
+      "train_c2": null,
+      "test_score": null
+    },
+    {
+      "eval_num": 100,
+      "id": "E100",
+      "op": "refine_diagnostics",
+      "tag": "Refine(E087)",
+      "status": "eval_error",
+      "train_score": null,
+      "train_c1": null,
+      "train_c2": null,
+      "test_score": null
+    }
+  ]
+}

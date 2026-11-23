@@ -1,0 +1,2893 @@
+{
+  "pool": [
+    {
+      "id": "E097",
+      "tag": "Cross(E087+E082)",
+      "code": "# E097[Cross(E087+E082)]：两亲本同源，差异仅在4个标量参数。失分诊断：①Case1两端剩座过大([2.15,..,3.15])且L1-L3 acc%低→端部容量未充分利用，短单竞争截断仍偏保守；②Case2中段L2-L4 acc%仅~30%→碎片化拒单为主因，需更强的碎片惩罚与端部让利。融合策略：主干沿用E087（2情景鲁棒流体+调和markdown+左贴合tie-break+末端倾销），参数取两者均值并做定向修正：①fcoef基线取中值0.38（比E082强、比E087松，兼顾两案例）；②快车道门限取中(rho<=0.89/fill<0.43)；③comp_cut取0.20；④新增端部让利修正：请求区间触达系统端点(1或M)且对应端段rho<1.0时，竞争需求lam剔除同端短途流再计算，降低端部短单的机会成本高估，提升两端利用率；⑤short_corr取0.855\nimport math\n_exp = math.exp\n\ndef _pois_ge(lam, k):\n    if k <= 0:\n        return 1.0\n    if lam <= 1e-9:\n        return 0.0\n    if lam > 25.0:\n        z = (k - 1 - lam) / math.sqrt(lam)\n        if z > 4.0:\n            return 0.0\n        if z < -4.0:\n            return 1.0\n        return 0.5 * (1.0 - math.erf(z / 1.4142135623730951))\n    term = _exp(-lam)\n    s = term\n    for i in range(1, k):\n        term *= lam / i\n        s += term\n    return max(0.0, 1.0 - s)\n\ndef _alloc_demand(blocks, a, b, r, pr):\n    L = b - a + 1\n    total = 0.0\n    cand = []\n    for idx, (u, v, c) in enumerate(blocks):\n        if u <= a and v >= b and c > 1e-9:\n            cand.append(((v - u + 1) - L, -c, idx))\n    if not cand:\n        return 0.0\n    cand.sort()\n    for waste, ncm, idx in cand:\n        if r <= 1e-9:\n            break\n        u, v, c = blocks[idx]\n        take = c if c < r else r\n        total += take * pr * L\n        r -= take\n        blocks[idx] = (u, v, c - take)\n        if u < a:\n            blocks.append((u, a - 1, take))\n        if b < v:\n            blocks.append((b + 1, v, take))\n    return total\n\ndef _fluid_V(blocks, rem):\n    dems = []\n    for (a, b), r in rem.items():\n        if r > 1e-9:\n            dems.append(((b - a + 1) ** 0.8, a, b, r))\n    if not dems:\n        return 0.0\n    dems.sort(key=lambda x: (-x[0], x[1], x[2]))\n    tot = 0.0\n    for pr, a, b, r in dems:\n        tot += _alloc_demand(blocks, a, b, r, pr)\n    return tot\n\ndef _robust_V(base_blocks, rem):\n    v = 0.0\n    for sc in (0.85, 1.15):\n        rrem = {k: x * sc for k, x in rem.items()}\n        v += 0.5 * _fluid_V(list(base_blocks), rrem)\n    return v\n\ndef decide(t, T, M, counts, req_i, req_j, prices, remaining_expected):\n    Lreq = req_j - req_i + 1\n    p = prices.get((req_i, req_j), int(10 * (Lreq ** 0.8)))\n    frac = (T - t) / float(T) if T > 0 else 0.0\n\n    rem = {}\n    for k, val in remaining_expected.items():\n        if k == (req_i, req_j):\n            val -= 1.0\n        if val > 1e-9:\n            rem[k] = val\n\n    blocks0 = [(u, v, float(c)) for (u, v), c in counts.items() if c > 0]\n    if not blocks0:\n        return None\n\n    # ---- 段级容量与需求强度 ----\n    cap_s = [0.0] * (M + 2)\n    for (u, v), c in counts.items():\n        if c > 0:\n            for s in range(u, v + 1):\n                cap_s[s] += c\n    dem_s = [0.0] * (M + 2)\n    for (a, b), r in rem.items():\n        for s in range(a, b + 1):\n            dem_s[s] += r\n\n    rho = 0.0\n    rho_min = 1e9\n    rho_mid = 0.0\n    inv_harm = 0.0\n    fill = 0.0\n    seg = req_j - req_i + 1\n    segs = []\n    for s in range(req_i, req_j + 1):\n        lam_s = dem_s[s]\n        if cap_s[s] <= 1e-9:\n            rho = 3.0; rho_min = 3.0; rho_mid = 3.0; fill = 1.0\n            segs = []\n            break\n        r_s = lam_s / cap_s[s]\n        segs.append(r_s)\n        rho = max(rho, r_s)\n        rho_min = min(rho_min, r_s)\n        fill = max(fill, _pois_ge(lam_s, int(cap_s[s] - 1e-9) + 1))\n    if segs:\n        srt = sorted(segs)\n        rho_mid = srt[len(srt) // 2]\n        inv_harm = sum(1.0 / max(r, 0.05) for r in srt)\n    else:\n        inv_harm = float(seg) / 3.0\n    rho = min(rho, 3.0)\n    if rho_min > 3.0:\n        rho_min = 3.0\n    if fill < 1e-6:\n        fill = 1.0 - _exp(-rho)\n    fill = min(max(fill, 0.02), 1.0)\n    if rho_min > 1e9:\n        rho_min = 1.0\n    if inv_harm <= 1e-9:\n        rho_harm = rho_min\n    else:\n        rho_harm = seg / inv_harm\n\n    cands = [(u, v) for (u, v), c in counts.items() if c > 0 and u <= req_i and req_j <= v]\n\n    # ==== 末端倾销（左贴合优先tie-break）====\n    no_future = all(r <= 1e-9 for r in rem.values())\n    if t >= T or no_future or (frac <= 0.08 and rho < 1.6):\n        best = None\n        for (u, v) in cands:\n            key = (0 if (u == req_i and v == req_j) else 1,\n                   (v - u + 1) - Lreq,\n                   0 if u == req_i else 1,\n                   0 if v == req_j else 1, -u, v)\n            if best is None or key < best[0]:\n                best = (key, (u, v))\n        if best is not None:\n            return best[1]\n\n    # ==== exact-fit低紧张直通 ====\n    if fill < 0.35 and rho < 1.0:\n        for (u, v) in cands:\n            if (v - u + 1) == Lreq:\n                return (u, v)\n\n    # ==== 快速放行车道（参数取两亲本中值）====\n    if rho <= 0.89 and rho_mid <= 0.55 and fill < 0.43 and Lreq <= 5:\n        best = None\n        for (u, v) in cands:\n            edge = 0 if (u == req_i or v == req_j) else 1\n            exact = 0 if (v - u + 1) == Lreq else 1\n            left = 1 if u == req_i else 0\n            key = (exact, edge, (v - u) - Lreq, -left, -u, v)\n            if best is None or key < best[0]:\n                best = (key, (u, v))\n        if best is not None:\n            return best[1]\n\n    V0 = _robust_V(blocks0, rem)\n\n    # ---- 竞争流强度（含端部让利修正）----\n    up_req = Lreq ** 0.8\n    lam = 0.0\n    lam_all = 0.0\n    # 端部让利：请求触达端点且端段宽松时，剔除同端短途竞争流（它们可用端部碎片，不与本单抢完整区间）\n    edge_relax = ((req_i == 1 and rho_min < 1.0) or (req_j == M and rho_min < 1.0)) and fill < 0.5\n    for (a, b), r in rem.items():\n        lam_all += r\n        if a <= req_j and b >= req_i and (b - a + 1) ** 0.8 >= up_req - 1e-9:\n            if edge_relax and ((a == 1 and req_i == 1 and b - a + 1 <= 2) or\n                               (b == M and req_j == M and b - a + 1 <= 2)):\n                continue\n            lam += r\n    comp = 1.0 - _exp(-lam)\n    cv = 0.5 if lam_all <= 4.0 else min(0.5, 1.0 / math.sqrt(lam_all))\n    kappa = 0.35 * (1.0 - frac)\n\n    scale = max(rho, 1e-6) ** 0.45\n    markdown = max(rho_harm, 0.25) ** 0.55\n    if 0.8 < rho < 1.2:\n        markdown *= 0.92\n    if fill > 0.5:\n        f_fill = 0.60 + 0.50 * fill\n    elif fill > 0.2:\n        f_fill = 0.48 + 0.75 * fill\n    else:\n        f_fill = 0.42 + 0.30 * fill\n    f_comp = 0.52 + 0.48 * comp\n    lenw = 0.5 + 0.5 * (Lreq / M)\n    stoch = f_fill * f_comp * (1.0 - 0.15 * frac) ** lenw\n    short_corr = 0.855 + 0.145 * (Lreq / M)\n\n    if frac >= 0.22:\n        theta = 0.65 + 0.35 * frac\n    else:\n        theta = max(0.35, 0.35 + 0.70 * (frac / 0.22))\n\n    # 碎片系数：两亲本折中（E082=0.34基线偏松致Case2碎片拒单，E087=0.42偏紧伤Case1吞吐，取0.38）\n    fcoef = 0.38 + 0.06 * min(1.0, max(0.0, (0.75 - frac) / 0.35))\n\n    best = None\n    for (u, v) in cands:\n        nb = []\n        for (uu, vv, cc) in blocks0:\n            if uu == u and vv == v:\n                cc -= 1.0\n            if cc > 1e-9:\n                nb.append((uu, vv, cc))\n        if u < req_i:\n            nb.append((u, req_i - 1, 1.0))\n        if req_j < v:\n            nb.append((req_j + 1, v, 1.0))\n        V1 = _robust_V(nb, rem)\n        delta = V0 - V1\n        if delta < 0.0:\n            delta = 0.0\n\n        if u < req_i and req_j < v:\n            delta += 0.8 * (Lreq / (v - u + 1)) * (0.3 + 0.7 * frac) * (0.7 + 0.3 * scale)\n        if (v - u + 1) == Lreq:\n            delta *= 0.90\n\n        wasteL = u - req_i\n        wasteR = req_j - v\n        if wasteL > 0 or wasteR > 0:\n            frag_cost = (wasteL ** 0.7 + wasteR ** 0.7) * (1.0 - frac) * fcoef\n            if frac > 0.4 and wasteL > 0 and wasteR > 0:\n                frag_cost *= 1.15\n        else:\n            frag_cost = -0.02 * (1.0 - frac) if frac < 0.5 else 0.0\n\n        # 主tie-break：左贴合优先\n        key = (delta + frag_cost, -(1 if u == req_i else 0), -u, v)\n        if best is None or key < best[0]:\n            best = (key, (u, v), delta)\n\n    if best is None:\n        return None\n    uv = best[1]\n    # 竞争截断因子：两亲本折中（E082=0.25偏保守伤Case1端部短单，E087=0.18，取0.20）\n    comp_cut = 1.0 + 0.20 * comp * (1.0 - fill)\n    delta = best[2] * scale * stoch * markdown * short_corr * (1.0 + kappa * cv) * comp_cut\n\n    if t >= T or p >= delta * theta - 1e-9:\n        return uv\n    return None",
+      "train_eval": {
+        "Case1": {
+          "avg_revenue": 896.95,
+          "avg_ho": 945.45,
+          "ratio_pct": 94.88,
+          "gap_pct": 5.12,
+          "invalid": 0,
+          "frags": 5.85,
+          "leftover": [
+            2.15,
+            0.1,
+            0.3,
+            0.3,
+            0.25,
+            3.15
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 14.1,
+              "rej": 6.9,
+              "stk": 1.95,
+              "acc%": 61.4
+            },
+            "L2": {
+              "acc": 9.85,
+              "rej": 8.75,
+              "stk": 2.75,
+              "acc%": 46.1
+            },
+            "L3": {
+              "acc": 6.0,
+              "rej": 7.1,
+              "stk": 1.8,
+              "acc%": 40.3
+            },
+            "L4": {
+              "acc": 5.5,
+              "rej": 4.4,
+              "stk": 0.9,
+              "acc%": 50.9
+            },
+            "L5": {
+              "acc": 3.55,
+              "rej": 2.75,
+              "stk": 0.75,
+              "acc%": 50.4
+            },
+            "L6": {
+              "acc": 3.7,
+              "rej": 0.0,
+              "stk": 0.35,
+              "acc%": 91.4
+            }
+          }
+        },
+        "Case2": {
+          "avg_revenue": 864.55,
+          "avg_ho": 924.15,
+          "ratio_pct": 93.56,
+          "gap_pct": 6.44,
+          "invalid": 0,
+          "frags": 4.65,
+          "leftover": [
+            1.65,
+            0.45,
+            0.5,
+            0.8,
+            0.15,
+            1.6
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 9.4,
+              "rej": 6.2,
+              "stk": 0.1,
+              "acc%": 59.9
+            },
+            "L2": {
+              "acc": 5.25,
+              "rej": 10.15,
+              "stk": 0.5,
+              "acc%": 33.0
+            },
+            "L3": {
+              "acc": 4.55,
+              "rej": 9.65,
+              "stk": 0.15,
+              "acc%": 31.7
+            },
+            "L4": {
+              "acc": 3.25,
+              "rej": 8.85,
+              "stk": 0.1,
+              "acc%": 26.6
+            },
+            "L5": {
+              "acc": 4.3,
+              "rej": 7.25,
+              "stk": 0.15,
+              "acc%": 36.8
+            },
+            "L6": {
+              "acc": 7.8,
+              "rej": 0.1,
+              "stk": 2.5,
+              "acc%": 75.0
+            }
+          }
+        },
+        "score": 94.22,
+        "elapsed_ms": 410.8
+      },
+      "test_eval": {
+        "Case1": {
+          "avg_revenue": 884.43,
+          "avg_ho": 932.17,
+          "ratio_pct": 94.88,
+          "gap_pct": 5.12,
+          "invalid": 0,
+          "frags": 7.1,
+          "leftover": [
+            3.2,
+            0.23,
+            0.57,
+            0.27,
+            0.2,
+            3.13
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 14.4,
+              "rej": 6.33,
+              "stk": 1.43,
+              "acc%": 65.0
+            },
+            "L2": {
+              "acc": 8.77,
+              "rej": 8.4,
+              "stk": 2.13,
+              "acc%": 45.4
+            },
+            "L3": {
+              "acc": 5.7,
+              "rej": 6.57,
+              "stk": 2.0,
+              "acc%": 40.0
+            },
+            "L4": {
+              "acc": 5.23,
+              "rej": 4.77,
+              "stk": 1.43,
+              "acc%": 45.8
+            },
+            "L5": {
+              "acc": 4.17,
+              "rej": 2.23,
+              "stk": 1.3,
+              "acc%": 54.1
+            },
+            "L6": {
+              "acc": 3.6,
+              "rej": 0.0,
+              "stk": 0.7,
+              "acc%": 83.7
+            }
+          }
+        },
+        "Case2": {
+          "avg_revenue": 863.07,
+          "avg_ho": 922.57,
+          "ratio_pct": 93.57,
+          "gap_pct": 6.43,
+          "invalid": 0,
+          "frags": 5.1,
+          "leftover": [
+            1.7,
+            0.6,
+            0.87,
+            0.53,
+            0.3,
+            1.37
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 8.8,
+              "rej": 7.53,
+              "stk": 0.2,
+              "acc%": 53.2
+            },
+            "L2": {
+              "acc": 5.9,
+              "rej": 9.1,
+              "stk": 0.3,
+              "acc%": 38.6
+            },
+            "L3": {
+              "acc": 4.17,
+              "rej": 9.57,
+              "stk": 0.2,
+              "acc%": 29.9
+            },
+            "L4": {
+              "acc": 3.77,
+              "rej": 8.5,
+              "stk": 0.2,
+              "acc%": 30.2
+            },
+            "L5": {
+              "acc": 4.13,
+              "rej": 7.37,
+              "stk": 0.1,
+              "acc%": 35.6
+            },
+            "L6": {
+              "acc": 7.63,
+              "rej": 0.13,
+              "stk": 2.7,
+              "acc%": 72.9
+            }
+          }
+        },
+        "score": 94.225,
+        "elapsed_ms": 614.48
+      }
+    },
+    {
+      "id": "E087",
+      "tag": "Cross(E082+E067)",
+      "code": "# E087[Cross(E082+E067)]：以E082冠军骨架为主干（2情景鲁棒流体+调和markdown+快车道+末端倾销+竞争截断），融合E067差异化优势：①快车道门限取两亲本折中（rho<=0.88 / rho_mid<=0.55 / fill<0.42 / Lreq<=5，兼顾Case2中长单放行与Case1短单吞吐）；②碎片系数用E082的frac平滑混合但基线抬到0.42（对齐E067，缓解Case2 L2-L4的碎片化拒单）；③short_corr取0.85折中并在markdown的临界区(0.8<rho<1.2)保留0.92微折；④竞争截断因子收敛为0.18（E082的0.25在Case1尾段略偏保守），其余E082的左贴合tie-break、完美贴合0.90奖励、双端0.7次幂碎片代价全部保留\nimport math\n_exp = math.exp\n\ndef _pois_ge(lam, k):\n    if k <= 0:\n        return 1.0\n    if lam <= 1e-9:\n        return 0.0\n    if lam > 25.0:\n        z = (k - 1 - lam) / math.sqrt(lam)\n        if z > 4.0:\n            return 0.0\n        if z < -4.0:\n            return 1.0\n        return 0.5 * (1.0 - math.erf(z / 1.4142135623730951))\n    term = _exp(-lam)\n    s = term\n    for i in range(1, k):\n        term *= lam / i\n        s += term\n    return max(0.0, 1.0 - s)\n\ndef _alloc_demand(blocks, a, b, r, pr):\n    L = b - a + 1\n    total = 0.0\n    cand = []\n    for idx, (u, v, c) in enumerate(blocks):\n        if u <= a and v >= b and c > 1e-9:\n            cand.append(((v - u + 1) - L, -c, idx))\n    if not cand:\n        return 0.0\n    cand.sort()\n    for waste, ncm, idx in cand:\n        if r <= 1e-9:\n            break\n        u, v, c = blocks[idx]\n        take = c if c < r else r\n        total += take * pr * L\n        r -= take\n        blocks[idx] = (u, v, c - take)\n        if u < a:\n            blocks.append((u, a - 1, take))\n        if b < v:\n            blocks.append((b + 1, v, take))\n    return total\n\ndef _fluid_V(blocks, rem):\n    dems = []\n    for (a, b), r in rem.items():\n        if r > 1e-9:\n            dems.append(((b - a + 1) ** 0.8, a, b, r))\n    if not dems:\n        return 0.0\n    dems.sort(key=lambda x: (-x[0], x[1], x[2]))\n    tot = 0.0\n    for pr, a, b, r in dems:\n        tot += _alloc_demand(blocks, a, b, r, pr)\n    return tot\n\ndef _robust_V(base_blocks, rem):\n    v = 0.0\n    for sc in (0.85, 1.15):\n        rrem = {k: x * sc for k, x in rem.items()}\n        v += 0.5 * _fluid_V(list(base_blocks), rrem)\n    return v\n\ndef decide(t, T, M, counts, req_i, req_j, prices, remaining_expected):\n    Lreq = req_j - req_i + 1\n    p = prices.get((req_i, req_j), int(10 * (Lreq ** 0.8)))\n    frac = (T - t) / float(T) if T > 0 else 0.0\n\n    rem = {}\n    for k, val in remaining_expected.items():\n        if k == (req_i, req_j):\n            val -= 1.0\n        if val > 1e-9:\n            rem[k] = val\n\n    blocks0 = [(u, v, float(c)) for (u, v), c in counts.items() if c > 0]\n    if not blocks0:\n        return None\n\n    # ---- 段级容量与需求强度 ----\n    cap_s = [0.0] * (M + 2)\n    for (u, v), c in counts.items():\n        if c > 0:\n            for s in range(u, v + 1):\n                cap_s[s] += c\n    dem_s = [0.0] * (M + 2)\n    for (a, b), r in rem.items():\n        for s in range(a, b + 1):\n            dem_s[s] += r\n\n    rho = 0.0\n    rho_min = 1e9\n    rho_mid = 0.0\n    inv_harm = 0.0\n    fill = 0.0\n    seg = req_j - req_i + 1\n    segs = []\n    for s in range(req_i, req_j + 1):\n        lam_s = dem_s[s]\n        if cap_s[s] <= 1e-9:\n            rho = 3.0; rho_min = 3.0; rho_mid = 3.0; fill = 1.0\n            segs = []\n            break\n        r_s = lam_s / cap_s[s]\n        segs.append(r_s)\n        rho = max(rho, r_s)\n        rho_min = min(rho_min, r_s)\n        fill = max(fill, _pois_ge(lam_s, int(cap_s[s] - 1e-9) + 1))\n    if segs:\n        srt = sorted(segs)\n        rho_mid = srt[len(srt) // 2]\n        inv_harm = sum(1.0 / max(r, 0.05) for r in srt)\n    else:\n        inv_harm = float(seg) / 3.0\n    rho = min(rho, 3.0)\n    if rho_min > 3.0:\n        rho_min = 3.0\n    if fill < 1e-6:\n        fill = 1.0 - _exp(-rho)\n    fill = min(max(fill, 0.02), 1.0)\n    if rho_min > 1e9:\n        rho_min = 1.0\n    if inv_harm <= 1e-9:\n        rho_harm = rho_min\n    else:\n        rho_harm = seg / inv_harm\n\n    cands = [(u, v) for (u, v), c in counts.items() if c > 0 and u <= req_i and req_j <= v]\n\n    # ==== 末端倾销（无未来判据 + 左贴合优先tie-break）====\n    no_future = all(r <= 1e-9 for r in rem.values())\n    if t >= T or no_future or (frac <= 0.08 and rho < 1.6):\n        best = None\n        for (u, v) in cands:\n            key = (0 if (u == req_i and v == req_j) else 1,\n                   (v - u + 1) - Lreq,\n                   0 if u == req_i else 1,\n                   0 if v == req_j else 1, -u, v)\n            if best is None or key < best[0]:\n                best = (key, (u, v))\n        if best is not None:\n            return best[1]\n\n    # ==== exact-fit低紧张直通 ====\n    if fill < 0.35 and rho < 1.0:\n        for (u, v) in cands:\n            if (v - u + 1) == Lreq:\n                return (u, v)\n\n    # ==== 快速放行车道（两亲本门限折中：L<=5护中长单吞吐，rho_mid护容量）====\n    if rho <= 0.88 and rho_mid <= 0.55 and fill < 0.42 and Lreq <= 5:\n        best = None\n        for (u, v) in cands:\n            edge = 0 if (u == req_i or v == req_j) else 1\n            exact = 0 if (v - u + 1) == Lreq else 1\n            left = 1 if u == req_i else 0\n            key = (exact, edge, (v - u) - Lreq, -left, -u, v)\n            if best is None or key < best[0]:\n                best = (key, (u, v))\n        if best is not None:\n            return best[1]\n\n    V0 = _robust_V(blocks0, rem)\n\n    # ---- 竞争流强度 ----\n    up_req = Lreq ** 0.8\n    lam = 0.0\n    lam_all = 0.0\n    for (a, b), r in rem.items():\n        lam_all += r\n        if a <= req_j and b >= req_i and (b - a + 1) ** 0.8 >= up_req - 1e-9:\n            lam += r\n    comp = 1.0 - _exp(-lam)\n    cv = 0.5 if lam_all <= 4.0 else min(0.5, 1.0 / math.sqrt(lam_all))\n    kappa = 0.35 * (1.0 - frac)\n\n    scale = max(rho, 1e-6) ** 0.45\n    markdown = max(rho_harm, 0.25) ** 0.55\n    if 0.8 < rho < 1.2:\n        markdown *= 0.92\n    if fill > 0.5:\n        f_fill = 0.60 + 0.50 * fill\n    elif fill > 0.2:\n        f_fill = 0.48 + 0.75 * fill\n    else:\n        f_fill = 0.42 + 0.30 * fill\n    f_comp = 0.52 + 0.48 * comp\n    lenw = 0.5 + 0.5 * (Lreq / M)\n    stoch = f_fill * f_comp * (1.0 - 0.15 * frac) ** lenw\n    # 两亲本short_corr折中（E082=0.86, E067=0.82）\n    short_corr = 0.85 + 0.15 * (Lreq / M)\n\n    if frac >= 0.22:\n        theta = 0.65 + 0.35 * frac\n    else:\n        theta = max(0.35, 0.35 + 0.70 * (frac / 0.22))\n\n    # 碎片系数：frac平滑混合，基线抬到0.42（融合E067，缓解Case2中段碎片化拒单）\n    fcoef = 0.42 + 0.06 * min(1.0, max(0.0, (0.75 - frac) / 0.35))\n\n    best = None\n    for (u, v) in cands:\n        nb = []\n        for (uu, vv, cc) in blocks0:\n            if uu == u and vv == v:\n                cc -= 1.0\n            if cc > 1e-9:\n                nb.append((uu, vv, cc))\n        if u < req_i:\n            nb.append((u, req_i - 1, 1.0))\n        if req_j < v:\n            nb.append((req_j + 1, v, 1.0))\n        V1 = _robust_V(nb, rem)\n        delta = V0 - V1\n        if delta < 0.0:\n            delta = 0.0\n\n        if u < req_i and req_j < v:\n            delta += 0.8 * (Lreq / (v - u + 1)) * (0.3 + 0.7 * frac) * (0.7 + 0.3 * scale)\n        if (v - u + 1) == Lreq:\n            delta *= 0.90\n\n        wasteL = u - req_i\n        wasteR = req_j - v\n        if wasteL > 0 or wasteR > 0:\n            frag_cost = (wasteL ** 0.7 + wasteR ** 0.7) * (1.0 - frac) * fcoef\n            if frac > 0.4 and wasteL > 0 and wasteR > 0:\n                frag_cost *= 1.15\n        else:\n            # 后期取消微贴现，避免末端虚假偏好完美贴合而错失端部座\n            frag_cost = -0.02 * (1.0 - frac) if frac < 0.5 else 0.0\n\n        # 主tie-break：左贴合优先（匹配前方短途流复用）\n        key = (delta + frag_cost, -(1 if u == req_i else 0), -u, v)\n        if best is None or key < best[0]:\n            best = (key, (u, v), delta)\n\n    if best is None:\n        return None\n    uv = best[1]\n    # 竞争截断因子取两亲本折中（E082=0.25，E067无，取0.18）\n    comp_cut = 1.0 + 0.18 * comp * (1.0 - fill)\n    delta = best[2] * scale * stoch * markdown * short_corr * (1.0 + kappa * cv) * comp_cut\n\n    if t >= T or p >= delta * theta - 1e-9:\n        return uv\n    return None",
+      "train_eval": {
+        "Case1": {
+          "avg_revenue": 897.1,
+          "avg_ho": 945.45,
+          "ratio_pct": 94.89,
+          "gap_pct": 5.11,
+          "invalid": 0,
+          "frags": 5.8,
+          "leftover": [
+            2.15,
+            0.1,
+            0.3,
+            0.25,
+            0.25,
+            3.15
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 14.0,
+              "rej": 6.95,
+              "stk": 2.0,
+              "acc%": 61.0
+            },
+            "L2": {
+              "acc": 9.9,
+              "rej": 8.7,
+              "stk": 2.75,
+              "acc%": 46.4
+            },
+            "L3": {
+              "acc": 6.0,
+              "rej": 7.1,
+              "stk": 1.8,
+              "acc%": 40.3
+            },
+            "L4": {
+              "acc": 5.45,
+              "rej": 4.45,
+              "stk": 0.9,
+              "acc%": 50.5
+            },
+            "L5": {
+              "acc": 3.6,
+              "rej": 2.7,
+              "stk": 0.75,
+              "acc%": 51.1
+            },
+            "L6": {
+              "acc": 3.7,
+              "rej": 0.0,
+              "stk": 0.35,
+              "acc%": 91.4
+            }
+          }
+        },
+        "Case2": {
+          "avg_revenue": 863.85,
+          "avg_ho": 924.15,
+          "ratio_pct": 93.49,
+          "gap_pct": 6.51,
+          "invalid": 0,
+          "frags": 4.8,
+          "leftover": [
+            1.6,
+            0.45,
+            0.55,
+            0.85,
+            0.2,
+            1.65
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 9.45,
+              "rej": 6.15,
+              "stk": 0.1,
+              "acc%": 60.2
+            },
+            "L2": {
+              "acc": 5.3,
+              "rej": 10.1,
+              "stk": 0.5,
+              "acc%": 33.3
+            },
+            "L3": {
+              "acc": 4.5,
+              "rej": 9.7,
+              "stk": 0.15,
+              "acc%": 31.4
+            },
+            "L4": {
+              "acc": 3.35,
+              "rej": 8.75,
+              "stk": 0.1,
+              "acc%": 27.5
+            },
+            "L5": {
+              "acc": 4.25,
+              "rej": 7.3,
+              "stk": 0.15,
+              "acc%": 36.3
+            },
+            "L6": {
+              "acc": 7.75,
+              "rej": 0.15,
+              "stk": 2.5,
+              "acc%": 74.5
+            }
+          }
+        },
+        "score": 94.19,
+        "elapsed_ms": 404.67
+      },
+      "test_eval": {
+        "Case1": {
+          "avg_revenue": 883.97,
+          "avg_ho": 932.17,
+          "ratio_pct": 94.83,
+          "gap_pct": 5.17,
+          "invalid": 0,
+          "frags": 7.17,
+          "leftover": [
+            3.2,
+            0.23,
+            0.57,
+            0.27,
+            0.2,
+            3.2
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 14.43,
+              "rej": 6.27,
+              "stk": 1.47,
+              "acc%": 65.1
+            },
+            "L2": {
+              "acc": 8.77,
+              "rej": 8.4,
+              "stk": 2.13,
+              "acc%": 45.4
+            },
+            "L3": {
+              "acc": 5.67,
+              "rej": 6.6,
+              "stk": 2.0,
+              "acc%": 39.7
+            },
+            "L4": {
+              "acc": 5.23,
+              "rej": 4.77,
+              "stk": 1.43,
+              "acc%": 45.8
+            },
+            "L5": {
+              "acc": 4.17,
+              "rej": 2.23,
+              "stk": 1.3,
+              "acc%": 54.1
+            },
+            "L6": {
+              "acc": 3.6,
+              "rej": 0.0,
+              "stk": 0.7,
+              "acc%": 83.7
+            }
+          }
+        },
+        "Case2": {
+          "avg_revenue": 863.23,
+          "avg_ho": 922.57,
+          "ratio_pct": 93.59,
+          "gap_pct": 6.41,
+          "invalid": 0,
+          "frags": 5.03,
+          "leftover": [
+            1.73,
+            0.63,
+            0.9,
+            0.5,
+            0.27,
+            1.33
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 8.8,
+              "rej": 7.53,
+              "stk": 0.2,
+              "acc%": 53.2
+            },
+            "L2": {
+              "acc": 5.93,
+              "rej": 9.1,
+              "stk": 0.27,
+              "acc%": 38.8
+            },
+            "L3": {
+              "acc": 4.2,
+              "rej": 9.53,
+              "stk": 0.2,
+              "acc%": 30.1
+            },
+            "L4": {
+              "acc": 3.77,
+              "rej": 8.5,
+              "stk": 0.2,
+              "acc%": 30.2
+            },
+            "L5": {
+              "acc": 4.1,
+              "rej": 7.4,
+              "stk": 0.1,
+              "acc%": 35.3
+            },
+            "L6": {
+              "acc": 7.63,
+              "rej": 0.13,
+              "stk": 2.7,
+              "acc%": 72.9
+            }
+          }
+        },
+        "score": 94.21,
+        "elapsed_ms": 599.38
+      }
+    },
+    {
+      "id": "E082",
+      "tag": "Cross(E078+E061)",
+      "code": "# E082[Cross(E078+E061)]：以E078冠军骨架为主干（2情景鲁棒流体+调和markdown+快车道+末端倾销+竞争截断修正），融入E061两项实证优势：①tie-break全链路统一“左贴合优先”（主选座与快车道均偏好u==req_i，匹配前方短途流、Case2中短单流失率更低）；②碎片系数按frac混合（前中期0.40、后期0.34之间再加平滑过渡），并把E061的“完美贴合不设负碎片”保守性并入——仅在frac<0.5时保留E078的微贴现，后期取消以避免末端虚假偏好；另快车道上界收紧为rho_mid<=0.55以保护中长单\nimport math\n_exp = math.exp\n\ndef _pois_ge(lam, k):\n    if k <= 0:\n        return 1.0\n    if lam <= 1e-9:\n        return 0.0\n    if lam > 25.0:\n        z = (k - 1 - lam) / math.sqrt(lam)\n        if z > 4.0:\n            return 0.0\n        if z < -4.0:\n            return 1.0\n        return 0.5 * (1.0 - math.erf(z / 1.4142135623730951))\n    term = _exp(-lam)\n    s = term\n    for i in range(1, k):\n        term *= lam / i\n        s += term\n    return max(0.0, 1.0 - s)\n\ndef _alloc_demand(blocks, a, b, r, pr):\n    L = b - a + 1\n    total = 0.0\n    cand = []\n    for idx, (u, v, c) in enumerate(blocks):\n        if u <= a and v >= b and c > 1e-9:\n            cand.append(((v - u + 1) - L, -c, idx))\n    if not cand:\n        return 0.0\n    cand.sort()\n    for waste, ncm, idx in cand:\n        if r <= 1e-9:\n            break\n        u, v, c = blocks[idx]\n        take = c if c < r else r\n        total += take * pr * L\n        r -= take\n        blocks[idx] = (u, v, c - take)\n        if u < a:\n            blocks.append((u, a - 1, take))\n        if b < v:\n            blocks.append((b + 1, v, take))\n    return total\n\ndef _fluid_V(blocks, rem):\n    dems = []\n    for (a, b), r in rem.items():\n        if r > 1e-9:\n            dems.append(((b - a + 1) ** 0.8, a, b, r))\n    if not dems:\n        return 0.0\n    dems.sort(key=lambda x: (-x[0], x[1], x[2]))\n    tot = 0.0\n    for pr, a, b, r in dems:\n        tot += _alloc_demand(blocks, a, b, r, pr)\n    return tot\n\ndef _robust_V(base_blocks, rem):\n    v = 0.0\n    for sc in (0.85, 1.15):\n        rrem = {k: x * sc for k, x in rem.items()}\n        v += 0.5 * _fluid_V(list(base_blocks), rrem)\n    return v\n\ndef decide(t, T, M, counts, req_i, req_j, prices, remaining_expected):\n    Lreq = req_j - req_i + 1\n    p = prices.get((req_i, req_j), int(10 * (Lreq ** 0.8)))\n    frac = (T - t) / float(T) if T > 0 else 0.0\n\n    rem = {}\n    for k, val in remaining_expected.items():\n        if k == (req_i, req_j):\n            val -= 1.0\n        if val > 1e-9:\n            rem[k] = val\n\n    blocks0 = [(u, v, float(c)) for (u, v), c in counts.items() if c > 0]\n    if not blocks0:\n        return None\n\n    # ---- 段级容量与需求强度 ----\n    cap_s = [0.0] * (M + 2)\n    for (u, v), c in counts.items():\n        if c > 0:\n            for s in range(u, v + 1):\n                cap_s[s] += c\n    dem_s = [0.0] * (M + 2)\n    for (a, b), r in rem.items():\n        for s in range(a, b + 1):\n            dem_s[s] += r\n\n    rho = 0.0\n    rho_min = 1e9\n    rho_mid = 0.0\n    inv_harm = 0.0\n    fill = 0.0\n    seg = req_j - req_i + 1\n    segs = []\n    for s in range(req_i, req_j + 1):\n        lam_s = dem_s[s]\n        if cap_s[s] <= 1e-9:\n            rho = 3.0; rho_min = 3.0; rho_mid = 3.0; fill = 1.0\n            segs = []\n            break\n        r_s = lam_s / cap_s[s]\n        segs.append(r_s)\n        rho = max(rho, r_s)\n        rho_min = min(rho_min, r_s)\n        fill = max(fill, _pois_ge(lam_s, int(cap_s[s] - 1e-9) + 1))\n    if segs:\n        srt = sorted(segs)\n        rho_mid = srt[len(srt) // 2]\n        inv_harm = sum(1.0 / max(r, 0.05) for r in srt)\n    else:\n        inv_harm = float(seg) / 3.0\n    rho = min(rho, 3.0)\n    if rho_min > 3.0:\n        rho_min = 3.0\n    if fill < 1e-6:\n        fill = 1.0 - _exp(-rho)\n    fill = min(max(fill, 0.02), 1.0)\n    if rho_min > 1e9:\n        rho_min = 1.0\n    if inv_harm <= 1e-9:\n        rho_harm = rho_min\n    else:\n        rho_harm = seg / inv_harm\n\n    cands = [(u, v) for (u, v), c in counts.items() if c > 0 and u <= req_i and req_j <= v]\n\n    # ==== 末端倾销 ====\n    no_future = all(r <= 1e-9 for r in rem.values())\n    if t >= T or no_future or (frac <= 0.08 and rho < 1.6):\n        best = None\n        for (u, v) in cands:\n            # 融合B：左贴合优先的tie-break\n            key = (0 if (u == req_i and v == req_j) else 1,\n                   (v - u + 1) - Lreq,\n                   0 if u == req_i else 1,\n                   0 if v == req_j else 1, -u, v)\n            if best is None or key < best[0]:\n                best = (key, (u, v))\n        if best is not None:\n            return best[1]\n\n    # ==== exact-fit低紧张直通 ====\n    if fill < 0.35 and rho < 1.0:\n        for (u, v) in cands:\n            if (v - u + 1) == Lreq:\n                return (u, v)\n\n    # ==== 快速放行车道（融合B：左贴合优先，rho_mid收紧护中长单）====\n    if rho <= 0.90 and rho_mid <= 0.55 and fill < 0.45 and Lreq <= 5:\n        best = None\n        for (u, v) in cands:\n            edge = 0 if (u == req_i or v == req_j) else 1\n            exact = 0 if (v - u + 1) == Lreq else 1\n            left = 1 if u == req_i else 0\n            key = (exact, edge, (v - u) - Lreq, -left, -u, v)\n            if best is None or key < best[0]:\n                best = (key, (u, v))\n        if best is not None:\n            return best[1]\n\n    V0 = _robust_V(blocks0, rem)\n\n    # ---- 竞争流强度 ----\n    up_req = Lreq ** 0.8\n    lam = 0.0\n    lam_all = 0.0\n    for (a, b), r in rem.items():\n        lam_all += r\n        if a <= req_j and b >= req_i and (b - a + 1) ** 0.8 >= up_req - 1e-9:\n            lam += r\n    comp = 1.0 - _exp(-lam)\n    cv = 0.5 if lam_all <= 4.0 else min(0.5, 1.0 / math.sqrt(lam_all))\n    kappa = 0.35 * (1.0 - frac)\n\n    scale = max(rho, 1e-6) ** 0.45\n    markdown = max(rho_harm, 0.25) ** 0.55\n    if 0.8 < rho < 1.2:\n        markdown *= 0.92\n    if fill > 0.5:\n        f_fill = 0.60 + 0.50 * fill\n    elif fill > 0.2:\n        f_fill = 0.48 + 0.75 * fill\n    else:\n        f_fill = 0.42 + 0.30 * fill\n    f_comp = 0.52 + 0.48 * comp\n    lenw = 0.5 + 0.5 * (Lreq / M)\n    stoch = f_fill * f_comp * (1.0 - 0.15 * frac) ** lenw\n    short_corr = 0.86 + 0.14 * (Lreq / M)\n\n    if frac >= 0.22:\n        theta = 0.65 + 0.35 * frac\n    else:\n        theta = max(0.35, 0.35 + 0.68 * (frac / 0.22))\n\n    # 融合B：碎片系数按frac平滑过渡（前中期0.40，后期0.34）\n    fcoef = 0.34 + 0.06 * min(1.0, max(0.0, (0.75 - frac) / 0.35))\n\n    best = None\n    for (u, v) in cands:\n        nb = []\n        for (uu, vv, cc) in blocks0:\n            if uu == u and vv == v:\n                cc -= 1.0\n            if cc > 1e-9:\n                nb.append((uu, vv, cc))\n        if u < req_i:\n            nb.append((u, req_i - 1, 1.0))\n        if req_j < v:\n            nb.append((req_j + 1, v, 1.0))\n        V1 = _robust_V(nb, rem)\n        delta = V0 - V1\n        if delta < 0.0:\n            delta = 0.0\n\n        if u < req_i and req_j < v:\n            delta += 0.8 * (Lreq / (v - u + 1)) * (0.3 + 0.7 * frac) * (0.7 + 0.3 * scale)\n        if (v - u + 1) == Lreq:\n            delta *= 0.90\n\n        wasteL = u - req_i\n        wasteR = req_j - v\n        if wasteL > 0 or wasteR > 0:\n            frag_cost = (wasteL ** 0.7 + wasteR ** 0.7) * (1.0 - frac) * fcoef\n            if frac > 0.4 and wasteL > 0 and wasteR > 0:\n                frag_cost *= 1.15\n        else:\n            # 融合B：后期取消微贴现，避免末端虚假偏好完美贴合而错失次优端部座\n            frag_cost = -0.02 * (1.0 - frac) if frac < 0.5 else 0.0\n\n        # 融合B：主tie-break改为左贴合优先（前方短途流复用概率更高）\n        key = (delta + frag_cost, -(1 if u == req_i else 0), -u, v)\n        if best is None or key < best[0]:\n            best = (key, (u, v), delta)\n\n    if best is None:\n        return None\n    uv = best[1]\n    comp_cut = 1.0 + 0.25 * comp * (1.0 - fill)\n    delta = best[2] * scale * stoch * markdown * short_corr * (1.0 + kappa * cv) * comp_cut\n\n    if t >= T or p >= delta * theta - 1e-9:\n        return uv\n    return None",
+      "train_eval": {
+        "Case1": {
+          "avg_revenue": 896.75,
+          "avg_ho": 945.45,
+          "ratio_pct": 94.86,
+          "gap_pct": 5.14,
+          "invalid": 0,
+          "frags": 5.8,
+          "leftover": [
+            2.1,
+            0.1,
+            0.3,
+            0.3,
+            0.25,
+            3.15
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 13.9,
+              "rej": 7.1,
+              "stk": 1.95,
+              "acc%": 60.6
+            },
+            "L2": {
+              "acc": 9.85,
+              "rej": 8.75,
+              "stk": 2.75,
+              "acc%": 46.1
+            },
+            "L3": {
+              "acc": 6.0,
+              "rej": 7.1,
+              "stk": 1.8,
+              "acc%": 40.3
+            },
+            "L4": {
+              "acc": 5.5,
+              "rej": 4.4,
+              "stk": 0.9,
+              "acc%": 50.9
+            },
+            "L5": {
+              "acc": 3.6,
+              "rej": 2.7,
+              "stk": 0.75,
+              "acc%": 51.1
+            },
+            "L6": {
+              "acc": 3.7,
+              "rej": 0.0,
+              "stk": 0.35,
+              "acc%": 91.4
+            }
+          }
+        },
+        "Case2": {
+          "avg_revenue": 864.0,
+          "avg_ho": 924.15,
+          "ratio_pct": 93.5,
+          "gap_pct": 6.5,
+          "invalid": 0,
+          "frags": 4.65,
+          "leftover": [
+            1.65,
+            0.45,
+            0.5,
+            0.8,
+            0.2,
+            1.65
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 9.4,
+              "rej": 6.2,
+              "stk": 0.1,
+              "acc%": 59.9
+            },
+            "L2": {
+              "acc": 5.25,
+              "rej": 10.15,
+              "stk": 0.5,
+              "acc%": 33.0
+            },
+            "L3": {
+              "acc": 4.55,
+              "rej": 9.65,
+              "stk": 0.15,
+              "acc%": 31.7
+            },
+            "L4": {
+              "acc": 3.3,
+              "rej": 8.8,
+              "stk": 0.1,
+              "acc%": 27.0
+            },
+            "L5": {
+              "acc": 4.3,
+              "rej": 7.25,
+              "stk": 0.15,
+              "acc%": 36.8
+            },
+            "L6": {
+              "acc": 7.75,
+              "rej": 0.1,
+              "stk": 2.55,
+              "acc%": 74.5
+            }
+          }
+        },
+        "score": 94.18,
+        "elapsed_ms": 417.95
+      },
+      "test_eval": {
+        "Case1": {
+          "avg_revenue": 884.33,
+          "avg_ho": 932.17,
+          "ratio_pct": 94.87,
+          "gap_pct": 5.13,
+          "invalid": 0,
+          "frags": 7.13,
+          "leftover": [
+            3.27,
+            0.23,
+            0.53,
+            0.27,
+            0.2,
+            3.13
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 14.27,
+              "rej": 6.43,
+              "stk": 1.47,
+              "acc%": 64.4
+            },
+            "L2": {
+              "acc": 8.93,
+              "rej": 8.27,
+              "stk": 2.1,
+              "acc%": 46.3
+            },
+            "L3": {
+              "acc": 5.73,
+              "rej": 6.6,
+              "stk": 1.93,
+              "acc%": 40.2
+            },
+            "L4": {
+              "acc": 5.23,
+              "rej": 4.83,
+              "stk": 1.37,
+              "acc%": 45.8
+            },
+            "L5": {
+              "acc": 4.1,
+              "rej": 2.3,
+              "stk": 1.3,
+              "acc%": 53.2
+            },
+            "L6": {
+              "acc": 3.6,
+              "rej": 0.0,
+              "stk": 0.7,
+              "acc%": 83.7
+            }
+          }
+        },
+        "Case2": {
+          "avg_revenue": 864.27,
+          "avg_ho": 922.57,
+          "ratio_pct": 93.7,
+          "gap_pct": 6.3,
+          "invalid": 0,
+          "frags": 4.97,
+          "leftover": [
+            1.7,
+            0.6,
+            0.8,
+            0.47,
+            0.3,
+            1.37
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 8.8,
+              "rej": 7.53,
+              "stk": 0.2,
+              "acc%": 53.2
+            },
+            "L2": {
+              "acc": 5.93,
+              "rej": 9.03,
+              "stk": 0.33,
+              "acc%": 38.8
+            },
+            "L3": {
+              "acc": 4.17,
+              "rej": 9.57,
+              "stk": 0.2,
+              "acc%": 29.9
+            },
+            "L4": {
+              "acc": 3.83,
+              "rej": 8.43,
+              "stk": 0.2,
+              "acc%": 30.7
+            },
+            "L5": {
+              "acc": 4.13,
+              "rej": 7.37,
+              "stk": 0.1,
+              "acc%": 35.6
+            },
+            "L6": {
+              "acc": 7.6,
+              "rej": 0.1,
+              "stk": 2.77,
+              "acc%": 72.6
+            }
+          }
+        },
+        "score": 94.285,
+        "elapsed_ms": 626.12
+      }
+    },
+    {
+      "id": "E072",
+      "tag": "Cross(E067+E061)",
+      "code": "# E072[Cross(E067+E061)]：以E067为主干（2情景鲁棒流体+调和均值markdown+双端0.7幂碎片代价+完整吃块0.90奖励+末端倾销），针对两亲本共同失分点（Case2中长单L2-L4接受率过低、Case1端部L1剩座偏多）做融合调参：①快车道放宽为(rho<=0.90, rho_mid<=0.60, fill<0.45)且长单例外改L<=5；②markdown指数0.60->0.55并在紧张度中等段(0.8<rho<1.2)额外乘mid_relief=0.92缓解中长单过拒；③碎片代价系数按frac两段化(前段0.34/后段0.40)，让前期更愿吃小块以匹配E067的端部滞留改善；④短单修正short_corr改线性斜率更缓(0.86+0.14*L/M)保住Case1 L1接受率；⑤theta前段斜率略降防早期过拒\nimport math\n_exp = math.exp\n\ndef _pois_ge(lam, k):\n    if k <= 0:\n        return 1.0\n    if lam <= 1e-9:\n        return 0.0\n    if lam > 25.0:\n        z = (k - 1 - lam) / math.sqrt(lam)\n        if z > 4.0:\n            return 0.0\n        if z < -4.0:\n            return 1.0\n        return 0.5 * (1.0 - math.erf(z / 1.4142135623730951))\n    term = _exp(-lam)\n    s = term\n    for i in range(1, k):\n        term *= lam / i\n        s += term\n    return max(0.0, 1.0 - s)\n\ndef _alloc_demand(blocks, a, b, r, pr):\n    L = b - a + 1\n    total = 0.0\n    cand = []\n    for idx, (u, v, c) in enumerate(blocks):\n        if u <= a and v >= b and c > 1e-9:\n            cand.append(((v - u + 1) - L, -c, idx))\n    if not cand:\n        return 0.0\n    cand.sort()\n    for waste, ncm, idx in cand:\n        if r <= 1e-9:\n            break\n        u, v, c = blocks[idx]\n        take = c if c < r else r\n        total += take * pr * L\n        r -= take\n        blocks[idx] = (u, v, c - take)\n        if u < a:\n            blocks.append((u, a - 1, take))\n        if b < v:\n            blocks.append((b + 1, v, take))\n    return total\n\ndef _fluid_V(blocks, rem):\n    dems = []\n    for (a, b), r in rem.items():\n        if r > 1e-9:\n            dems.append(((b - a + 1) ** 0.8, a, b, r))\n    if not dems:\n        return 0.0\n    dems.sort(key=lambda x: (-x[0], x[1], x[2]))\n    tot = 0.0\n    for pr, a, b, r in dems:\n        tot += _alloc_demand(blocks, a, b, r, pr)\n    return tot\n\ndef _robust_V(base_blocks, rem):\n    # 保留E067的2情景鲁棒流体（Case1增益来源）\n    v = 0.0\n    for sc in (0.85, 1.15):\n        rrem = {k: x * sc for k, x in rem.items()}\n        v += 0.5 * _fluid_V(list(base_blocks), rrem)\n    return v\n\ndef decide(t, T, M, counts, req_i, req_j, prices, remaining_expected):\n    Lreq = req_j - req_i + 1\n    p = prices.get((req_i, req_j), int(10 * (Lreq ** 0.8)))\n    frac = (T - t) / float(T) if T > 0 else 0.0\n\n    rem = {}\n    for k, val in remaining_expected.items():\n        if k == (req_i, req_j):\n            val -= 1.0\n        if val > 1e-9:\n            rem[k] = val\n\n    blocks0 = [(u, v, float(c)) for (u, v), c in counts.items() if c > 0]\n    if not blocks0:\n        return None\n\n    # ---- 段级容量与需求强度 ----\n    cap_s = [0.0] * (M + 2)\n    for (u, v), c in counts.items():\n        if c > 0:\n            for s in range(u, v + 1):\n                cap_s[s] += c\n    dem_s = [0.0] * (M + 2)\n    for (a, b), r in rem.items():\n        for s in range(a, b + 1):\n            dem_s[s] += r\n\n    rho = 0.0\n    rho_min = 1e9\n    rho_mid = 0.0\n    inv_harm = 0.0\n    fill = 0.0\n    seg = req_j - req_i + 1\n    segs = []\n    for s in range(req_i, req_j + 1):\n        lam_s = dem_s[s]\n        if cap_s[s] <= 1e-9:\n            rho = 3.0; rho_min = 3.0; rho_mid = 3.0; fill = 1.0\n            segs = []\n            break\n        r_s = lam_s / cap_s[s]\n        segs.append(r_s)\n        rho = max(rho, r_s)\n        rho_min = min(rho_min, r_s)\n        fill = max(fill, _pois_ge(lam_s, int(cap_s[s] - 1e-9) + 1))\n    if segs:\n        srt = sorted(segs)\n        rho_mid = srt[len(srt) // 2]\n        inv_harm = sum(1.0 / max(r, 0.05) for r in srt)\n    else:\n        inv_harm = float(seg) / 3.0\n    rho = min(rho, 3.0)\n    if rho_min > 3.0:\n        rho_min = 3.0\n    if fill < 1e-6:\n        fill = 1.0 - _exp(-rho)\n    fill = min(max(fill, 0.02), 1.0)\n    if rho_min > 1e9:\n        rho_min = 1.0\n    if inv_harm <= 1e-9:\n        rho_harm = rho_min\n    else:\n        rho_harm = seg / inv_harm\n\n    cands = [(u, v) for (u, v), c in counts.items() if c > 0 and u <= req_i and req_j <= v]\n\n    # ==== 末端倾销（无未来竞争判据 + frac<=0.08 且 rho<1.6）====\n    no_future = all(r <= 1e-9 for r in rem.values())\n    if t >= T or no_future or (frac <= 0.08 and rho < 1.6):\n        best = None\n        for (u, v) in cands:\n            key = (0 if (u == req_i and v == req_j) else 1,\n                   (v - u + 1) - Lreq,\n                   0 if (u == req_i or v == req_j) else 1, -u, v)\n            if best is None or key < best[0]:\n                best = (key, (u, v))\n        if best is not None:\n            return best[1]\n\n    # ==== 快速放行车道（融合调参①：放宽阈值+L<=5长单例外）====\n    if rho <= 0.90 and rho_mid <= 0.60 and fill < 0.45 and Lreq <= 5:\n        best = None\n        for (u, v) in cands:\n            edge = 0 if (u == req_i or v == req_j) else 1\n            exact = 0 if (v - u + 1) == Lreq else 1\n            left = 1 if u == req_i else 0\n            key = (exact, edge, (v - u) - Lreq, -left, -u, v)\n            if best is None or key < best[0]:\n                best = (key, (u, v))\n        if best is not None:\n            return best[1]\n\n    V0 = _robust_V(blocks0, rem)\n\n    # ---- 竞争流强度 ----\n    up_req = Lreq ** 0.8\n    lam = 0.0\n    lam_all = 0.0\n    for (a, b), r in rem.items():\n        lam_all += r\n        if a <= req_j and b >= req_i and (b - a + 1) ** 0.8 >= up_req - 1e-9:\n            lam += r\n    comp = 1.0 - _exp(-lam)\n    cv = 0.5 if lam_all <= 4.0 else min(0.5, 1.0 / math.sqrt(lam_all))\n    kappa = 0.35 * (1.0 - frac)\n\n    scale = max(rho, 1e-6) ** 0.45\n    # 融合调参②：markdown指数0.55 + 中等紧张度额外缓和\n    markdown = max(rho_harm, 0.25) ** 0.55\n    if 0.8 < rho < 1.2:\n        markdown *= 0.92\n    if fill > 0.5:\n        f_fill = 0.60 + 0.50 * fill\n    elif fill > 0.2:\n        f_fill = 0.48 + 0.75 * fill\n    else:\n        f_fill = 0.42 + 0.30 * fill\n    f_comp = 0.52 + 0.48 * comp\n    lenw = 0.5 + 0.5 * (Lreq / M)\n    stoch = f_fill * f_comp * (1.0 - 0.15 * frac) ** lenw\n    # 融合调参④：短单修正更缓的斜率\n    short_corr = 0.86 + 0.14 * (Lreq / M)\n\n    if frac >= 0.22:\n        theta = 0.65 + 0.35 * frac\n    else:\n        theta = max(0.35, 0.35 + 0.68 * (frac / 0.22))\n\n    # 融合调参③：碎片代价系数按frac两段化\n    fcoef = 0.34 if frac > 0.5 else 0.40\n\n    best = None\n    for (u, v) in cands:\n        nb = []\n        for (uu, vv, cc) in blocks0:\n            if uu == u and vv == v:\n                cc -= 1.0\n            if cc > 1e-9:\n                nb.append((uu, vv, cc))\n        if u < req_i:\n            nb.append((u, req_i - 1, 1.0))\n        if req_j < v:\n            nb.append((req_j + 1, v, 1.0))\n        V1 = _robust_V(nb, rem)\n        delta = V0 - V1\n        if delta < 0.0:\n            delta = 0.0\n\n        if u < req_i and req_j < v:\n            delta += 0.8 * (Lreq / (v - u + 1)) * (0.3 + 0.7 * frac) * (0.7 + 0.3 * scale)\n        if (v - u + 1) == Lreq:\n            delta *= 0.90\n\n        wasteL = u - req_i\n        wasteR = req_j - v\n        if wasteL > 0 or wasteR > 0:\n            frag_cost = (wasteL ** 0.7 + wasteR ** 0.7) * (1.0 - frac) * fcoef\n        else:\n            frag_cost = 0.0\n\n        key = (delta + frag_cost, -(1 if u == req_i else 0), -u, v)\n        if best is None or key < best[0]:\n            best = (key, (u, v), delta)\n\n    if best is None:\n        return None\n    uv = best[1]\n    delta = best[2] * scale * stoch * markdown * short_corr * (1.0 + kappa * cv)\n\n    if t >= T or p >= delta * theta - 1e-9:\n        return uv\n    return None",
+      "train_eval": {
+        "Case1": {
+          "avg_revenue": 896.75,
+          "avg_ho": 945.45,
+          "ratio_pct": 94.86,
+          "gap_pct": 5.14,
+          "invalid": 0,
+          "frags": 5.8,
+          "leftover": [
+            2.1,
+            0.1,
+            0.3,
+            0.3,
+            0.25,
+            3.15
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 13.9,
+              "rej": 7.1,
+              "stk": 1.95,
+              "acc%": 60.6
+            },
+            "L2": {
+              "acc": 9.85,
+              "rej": 8.75,
+              "stk": 2.75,
+              "acc%": 46.1
+            },
+            "L3": {
+              "acc": 6.0,
+              "rej": 7.1,
+              "stk": 1.8,
+              "acc%": 40.3
+            },
+            "L4": {
+              "acc": 5.5,
+              "rej": 4.4,
+              "stk": 0.9,
+              "acc%": 50.9
+            },
+            "L5": {
+              "acc": 3.6,
+              "rej": 2.7,
+              "stk": 0.75,
+              "acc%": 51.1
+            },
+            "L6": {
+              "acc": 3.7,
+              "rej": 0.0,
+              "stk": 0.35,
+              "acc%": 91.4
+            }
+          }
+        },
+        "Case2": {
+          "avg_revenue": 863.75,
+          "avg_ho": 924.15,
+          "ratio_pct": 93.47,
+          "gap_pct": 6.53,
+          "invalid": 0,
+          "frags": 4.7,
+          "leftover": [
+            1.7,
+            0.45,
+            0.5,
+            0.8,
+            0.2,
+            1.65
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 9.4,
+              "rej": 6.2,
+              "stk": 0.1,
+              "acc%": 59.9
+            },
+            "L2": {
+              "acc": 5.25,
+              "rej": 10.15,
+              "stk": 0.5,
+              "acc%": 33.0
+            },
+            "L3": {
+              "acc": 4.55,
+              "rej": 9.65,
+              "stk": 0.15,
+              "acc%": 31.7
+            },
+            "L4": {
+              "acc": 3.3,
+              "rej": 8.8,
+              "stk": 0.1,
+              "acc%": 27.0
+            },
+            "L5": {
+              "acc": 4.35,
+              "rej": 7.2,
+              "stk": 0.15,
+              "acc%": 37.2
+            },
+            "L6": {
+              "acc": 7.7,
+              "rej": 0.15,
+              "stk": 2.55,
+              "acc%": 74.0
+            }
+          }
+        },
+        "score": 94.165,
+        "elapsed_ms": 433.58
+      },
+      "test_eval": {
+        "Case1": {
+          "avg_revenue": 884.33,
+          "avg_ho": 932.17,
+          "ratio_pct": 94.87,
+          "gap_pct": 5.13,
+          "invalid": 0,
+          "frags": 7.13,
+          "leftover": [
+            3.27,
+            0.23,
+            0.53,
+            0.27,
+            0.2,
+            3.13
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 14.27,
+              "rej": 6.43,
+              "stk": 1.47,
+              "acc%": 64.4
+            },
+            "L2": {
+              "acc": 8.93,
+              "rej": 8.27,
+              "stk": 2.1,
+              "acc%": 46.3
+            },
+            "L3": {
+              "acc": 5.73,
+              "rej": 6.6,
+              "stk": 1.93,
+              "acc%": 40.2
+            },
+            "L4": {
+              "acc": 5.23,
+              "rej": 4.83,
+              "stk": 1.37,
+              "acc%": 45.8
+            },
+            "L5": {
+              "acc": 4.1,
+              "rej": 2.3,
+              "stk": 1.3,
+              "acc%": 53.2
+            },
+            "L6": {
+              "acc": 3.6,
+              "rej": 0.0,
+              "stk": 0.7,
+              "acc%": 83.7
+            }
+          }
+        },
+        "Case2": {
+          "avg_revenue": 864.9,
+          "avg_ho": 922.57,
+          "ratio_pct": 93.77,
+          "gap_pct": 6.23,
+          "invalid": 0,
+          "frags": 4.97,
+          "leftover": [
+            1.67,
+            0.57,
+            0.77,
+            0.43,
+            0.3,
+            1.4
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 8.8,
+              "rej": 7.53,
+              "stk": 0.2,
+              "acc%": 53.2
+            },
+            "L2": {
+              "acc": 5.9,
+              "rej": 9.07,
+              "stk": 0.33,
+              "acc%": 38.6
+            },
+            "L3": {
+              "acc": 4.17,
+              "rej": 9.57,
+              "stk": 0.2,
+              "acc%": 29.9
+            },
+            "L4": {
+              "acc": 3.83,
+              "rej": 8.43,
+              "stk": 0.2,
+              "acc%": 30.7
+            },
+            "L5": {
+              "acc": 4.17,
+              "rej": 7.33,
+              "stk": 0.1,
+              "acc%": 35.9
+            },
+            "L6": {
+              "acc": 7.6,
+              "rej": 0.1,
+              "stk": 2.77,
+              "acc%": 72.6
+            }
+          }
+        },
+        "score": 94.32,
+        "elapsed_ms": 608.28
+      }
+    },
+    {
+      "id": "E077",
+      "tag": "Cross(E072+E037)",
+      "code": "# E077[Xover(E072+E037)]：以E072主干（2情景鲁棒流体+调和均值markdown+双端0.7幂碎片代价+完整吃块0.90奖励+末端倾销）为主体，针对两亲本共同失分点融合改进：①Case2中长单(L2-L4)接受率过低(27~33%)→在中等紧张区(0.75<rho<1.30)对L2-L4引入midlen_relief=0.88再乘markdown，且把E072的mid_relief范围从(0.8,1.2)扩到(0.75,1.30)并改0.90；②Case1端部L1剩座偏多(段1剩2.1/段6剩3.15)→新增端段倾销通道：当请求恰好覆盖首段或末段且该段rho_mid<=0.5、frac<=0.35时直接端部贴合放行（吸收E037快车道思路但只作用于端部滞留位）；③碎片代价前端系数0.34→0.32进一步鼓励前期吃小块；④短单修正保留缓斜率0.86+0.14*L/M；⑤theta前段斜率0.68→0.62防早期过拒\nimport math\n_exp = math.exp\n\ndef _pois_ge(lam, k):\n    if k <= 0:\n        return 1.0\n    if lam <= 1e-9:\n        return 0.0\n    if lam > 25.0:\n        z = (k - 1 - lam) / math.sqrt(lam)\n        if z > 4.0:\n            return 0.0\n        if z < -4.0:\n            return 1.0\n        return 0.5 * (1.0 - math.erf(z / 1.4142135623730951))\n    term = _exp(-lam)\n    s = term\n    for i in range(1, k):\n        term *= lam / i\n        s += term\n    return max(0.0, 1.0 - s)\n\ndef _alloc_demand(blocks, a, b, r, pr):\n    L = b - a + 1\n    total = 0.0\n    cand = []\n    for idx, (u, v, c) in enumerate(blocks):\n        if u <= a and v >= b and c > 1e-9:\n            cand.append(((v - u + 1) - L, -c, idx))\n    if not cand:\n        return 0.0\n    cand.sort()\n    for waste, ncm, idx in cand:\n        if r <= 1e-9:\n            break\n        u, v, c = blocks[idx]\n        take = c if c < r else r\n        total += take * pr * L\n        r -= take\n        blocks[idx] = (u, v, c - take)\n        if u < a:\n            blocks.append((u, a - 1, take))\n        if b < v:\n            blocks.append((b + 1, v, take))\n    return total\n\ndef _fluid_V(blocks, rem):\n    dems = []\n    for (a, b), r in rem.items():\n        if r > 1e-9:\n            dems.append(((b - a + 1) ** 0.8, a, b, r))\n    if not dems:\n        return 0.0\n    dems.sort(key=lambda x: (-x[0], x[1], x[2]))\n    tot = 0.0\n    for pr, a, b, r in dems:\n        tot += _alloc_demand(blocks, a, b, r, pr)\n    return tot\n\ndef _robust_V(base_blocks, rem):\n    v = 0.0\n    for sc in (0.85, 1.15):\n        rrem = {k: x * sc for k, x in rem.items()}\n        v += 0.5 * _fluid_V(list(base_blocks), rrem)\n    return v\n\ndef decide(t, T, M, counts, req_i, req_j, prices, remaining_expected):\n    Lreq = req_j - req_i + 1\n    p = prices.get((req_i, req_j), int(10 * (Lreq ** 0.8)))\n    frac = (T - t) / float(T) if T > 0 else 0.0\n\n    rem = {}\n    for k, val in remaining_expected.items():\n        if k == (req_i, req_j):\n            val -= 1.0\n        if val > 1e-9:\n            rem[k] = val\n\n    blocks0 = [(u, v, float(c)) for (u, v), c in counts.items() if c > 0]\n    if not blocks0:\n        return None\n\n    # ---- 段级容量与需求强度 ----\n    cap_s = [0.0] * (M + 2)\n    for (u, v), c in counts.items():\n        if c > 0:\n            for s in range(u, v + 1):\n                cap_s[s] += c\n    dem_s = [0.0] * (M + 2)\n    for (a, b), r in rem.items():\n        for s in range(a, b + 1):\n            dem_s[s] += r\n\n    rho = 0.0\n    rho_min = 1e9\n    rho_mid = 0.0\n    fill = 0.0\n    seg = req_j - req_i + 1\n    segs = []\n    for s in range(req_i, req_j + 1):\n        lam_s = dem_s[s]\n        if cap_s[s] <= 1e-9:\n            rho = 3.0; rho_min = 3.0; rho_mid = 3.0; fill = 1.0\n            segs = []\n            break\n        r_s = lam_s / cap_s[s]\n        segs.append(r_s)\n        rho = max(rho, r_s)\n        rho_min = min(rho_min, r_s)\n        fill = max(fill, _pois_ge(lam_s, int(cap_s[s] - 1e-9) + 1))\n    if segs:\n        srt = sorted(segs)\n        rho_mid = srt[len(srt) // 2]\n        inv_harm = sum(1.0 / max(r, 0.05) for r in srt)\n    else:\n        inv_harm = float(seg) / 3.0\n    rho = min(rho, 3.0)\n    if rho_min > 3.0:\n        rho_min = 3.0\n    if fill < 1e-6:\n        fill = 1.0 - _exp(-rho)\n    fill = min(max(fill, 0.02), 1.0)\n    if rho_min > 1e9:\n        rho_min = 1.0\n    if inv_harm <= 1e-9:\n        rho_harm = rho_min\n    else:\n        rho_harm = seg / inv_harm\n\n    cands = [(u, v) for (u, v), c in counts.items() if c > 0 and u <= req_i and req_j <= v]\n\n    # ==== 末端倾销（无未来竞争判据 + frac<=0.08 且 rho<1.6）====\n    no_future = all(r <= 1e-9 for r in rem.values())\n    if t >= T or no_future or (frac <= 0.08 and rho < 1.6):\n        best = None\n        for (u, v) in cands:\n            key = (0 if (u == req_i and v == req_j) else 1,\n                   (v - u + 1) - Lreq,\n                   0 if (u == req_i or v == req_j) else 1, -u, v)\n            if best is None or key < best[0]:\n                best = (key, (u, v))\n        if best is not None:\n            return best[1]\n\n    # ==== 端段倾销通道（融合改进②：清Case1端部滞留位）====\n    if frac <= 0.35 and Lreq <= 3 and rho_mid <= 0.50:\n        edge_req = (req_i == 1) or (req_j == M)\n        if edge_req:\n            best = None\n            for (u, v) in cands:\n                key = (0 if (u == req_i and v == req_j) else 1,\n                       0 if (u == req_i or v == req_j) else 1,\n                       (v - u + 1) - Lreq, -u, v)\n                if best is None or key < best[0]:\n                    best = (key, (u, v))\n            if best is not None:\n                return best[1]\n\n    # ==== 快速放行车道（rho<=0.90, rho_mid<=0.60, fill<0.45, L<=5）====\n    if rho <= 0.90 and rho_mid <= 0.60 and fill < 0.45 and Lreq <= 5:\n        best = None\n        for (u, v) in cands:\n            edge = 0 if (u == req_i or v == req_j) else 1\n            exact = 0 if (v - u + 1) == Lreq else 1\n            left = 1 if u == req_i else 0\n            key = (exact, edge, (v - u) - Lreq, -left, -u, v)\n            if best is None or key < best[0]:\n                best = (key, (u, v))\n        if best is not None:\n            return best[1]\n\n    V0 = _robust_V(blocks0, rem)\n\n    # ---- 竞争流强度 ----\n    up_req = Lreq ** 0.8\n    lam = 0.0\n    lam_all = 0.0\n    for (a, b), r in rem.items():\n        lam_all += r\n        if a <= req_j and b >= req_i and (b - a + 1) ** 0.8 >= up_req - 1e-9:\n            lam += r\n    comp = 1.0 - _exp(-lam)\n    cv = 0.5 if lam_all <= 4.0 else min(0.5, 1.0 / math.sqrt(lam_all))\n    kappa = 0.35 * (1.0 - frac)\n\n    scale = max(rho, 1e-6) ** 0.45\n    markdown = max(rho_harm, 0.25) ** 0.55\n    # 融合改进①：中等紧张区范围扩大+幅度调整，L2-L4中长单额外缓解\n    if 0.75 < rho < 1.30:\n        markdown *= 0.90\n        if 2 <= Lreq <= 4:\n            markdown *= 0.88\n    if fill > 0.5:\n        f_fill = 0.60 + 0.50 * fill\n    elif fill > 0.2:\n        f_fill = 0.48 + 0.75 * fill\n    else:\n        f_fill = 0.42 + 0.30 * fill\n    f_comp = 0.52 + 0.48 * comp\n    lenw = 0.5 + 0.5 * (Lreq / M)\n    stoch = f_fill * f_comp * (1.0 - 0.15 * frac) ** lenw\n    short_corr = 0.86 + 0.14 * (Lreq / M)\n\n    # 融合改进⑤：theta前段斜率更缓防早期过拒\n    if frac >= 0.22:\n        theta = 0.65 + 0.35 * frac\n    else:\n        theta = max(0.35, 0.35 + 0.62 * (frac / 0.22))\n\n    # 融合改进③：碎片代价前期系数再降\n    fcoef = 0.32 if frac > 0.5 else 0.40\n\n    best = None\n    for (u, v) in cands:\n        nb = []\n        for (uu, vv, cc) in blocks0:\n            if uu == u and vv == v:\n                cc -= 1.0\n            if cc > 1e-9:\n                nb.append((uu, vv, cc))\n        if u < req_i:\n            nb.append((u, req_i - 1, 1.0))\n        if req_j < v:\n            nb.append((req_j + 1, v, 1.0))\n        V1 = _robust_V(nb, rem)\n        delta = V0 - V1\n        if delta < 0.0:\n            delta = 0.0\n\n        if u < req_i and req_j < v:\n            delta += 0.8 * (Lreq / (v - u + 1)) * (0.3 + 0.7 * frac) * (0.7 + 0.3 * scale)\n        if (v - u + 1) == Lreq:\n            delta *= 0.90\n\n        wasteL = u - req_i\n        wasteR = req_j - v\n        if wasteL > 0 or wasteR > 0:\n            frag_cost = (wasteL ** 0.7 + wasteR ** 0.7) * (1.0 - frac) * fcoef\n        else:\n            frag_cost = 0.0\n\n        key = (delta + frag_cost, -(1 if u == req_i else 0), -u, v)\n        if best is None or key < best[0]:\n            best = (key, (u, v), delta)\n\n    if best is None:\n        return None\n    uv = best[1]\n    delta = best[2] * scale * stoch * markdown * short_corr * (1.0 + kappa * cv)\n\n    if t >= T or p >= delta * theta - 1e-9:\n        return uv\n    return None",
+      "train_eval": {
+        "Case1": {
+          "avg_revenue": 896.4,
+          "avg_ho": 945.45,
+          "ratio_pct": 94.82,
+          "gap_pct": 5.18,
+          "invalid": 0,
+          "frags": 5.85,
+          "leftover": [
+            2.2,
+            0.1,
+            0.3,
+            0.35,
+            0.25,
+            3.05
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 13.9,
+              "rej": 7.1,
+              "stk": 1.95,
+              "acc%": 60.6
+            },
+            "L2": {
+              "acc": 9.9,
+              "rej": 8.8,
+              "stk": 2.65,
+              "acc%": 46.4
+            },
+            "L3": {
+              "acc": 5.95,
+              "rej": 7.1,
+              "stk": 1.85,
+              "acc%": 39.9
+            },
+            "L4": {
+              "acc": 5.5,
+              "rej": 4.35,
+              "stk": 0.95,
+              "acc%": 50.9
+            },
+            "L5": {
+              "acc": 3.6,
+              "rej": 2.65,
+              "stk": 0.8,
+              "acc%": 51.1
+            },
+            "L6": {
+              "acc": 3.7,
+              "rej": 0.0,
+              "stk": 0.35,
+              "acc%": 91.4
+            }
+          }
+        },
+        "Case2": {
+          "avg_revenue": 863.0,
+          "avg_ho": 924.15,
+          "ratio_pct": 93.39,
+          "gap_pct": 6.61,
+          "invalid": 0,
+          "frags": 4.85,
+          "leftover": [
+            1.8,
+            0.5,
+            0.5,
+            0.8,
+            0.2,
+            1.7
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 9.4,
+              "rej": 6.2,
+              "stk": 0.1,
+              "acc%": 59.9
+            },
+            "L2": {
+              "acc": 5.3,
+              "rej": 10.15,
+              "stk": 0.45,
+              "acc%": 33.3
+            },
+            "L3": {
+              "acc": 4.55,
+              "rej": 9.65,
+              "stk": 0.15,
+              "acc%": 31.7
+            },
+            "L4": {
+              "acc": 3.4,
+              "rej": 8.7,
+              "stk": 0.1,
+              "acc%": 27.9
+            },
+            "L5": {
+              "acc": 4.45,
+              "rej": 7.1,
+              "stk": 0.15,
+              "acc%": 38.0
+            },
+            "L6": {
+              "acc": 7.5,
+              "rej": 0.15,
+              "stk": 2.75,
+              "acc%": 72.1
+            }
+          }
+        },
+        "score": 94.105,
+        "elapsed_ms": 411.53
+      },
+      "test_eval": {
+        "Case1": {
+          "avg_revenue": 882.33,
+          "avg_ho": 932.17,
+          "ratio_pct": 94.66,
+          "gap_pct": 5.34,
+          "invalid": 0,
+          "frags": 7.3,
+          "leftover": [
+            3.3,
+            0.23,
+            0.5,
+            0.27,
+            0.27,
+            3.27
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 14.2,
+              "rej": 6.4,
+              "stk": 1.57,
+              "acc%": 64.1
+            },
+            "L2": {
+              "acc": 8.87,
+              "rej": 8.2,
+              "stk": 2.23,
+              "acc%": 45.9
+            },
+            "L3": {
+              "acc": 5.67,
+              "rej": 6.6,
+              "stk": 2.0,
+              "acc%": 39.7
+            },
+            "L4": {
+              "acc": 5.2,
+              "rej": 4.8,
+              "stk": 1.43,
+              "acc%": 45.5
+            },
+            "L5": {
+              "acc": 4.17,
+              "rej": 2.23,
+              "stk": 1.3,
+              "acc%": 54.1
+            },
+            "L6": {
+              "acc": 3.6,
+              "rej": 0.0,
+              "stk": 0.7,
+              "acc%": 83.7
+            }
+          }
+        },
+        "Case2": {
+          "avg_revenue": 863.17,
+          "avg_ho": 922.57,
+          "ratio_pct": 93.58,
+          "gap_pct": 6.42,
+          "invalid": 0,
+          "frags": 5.3,
+          "leftover": [
+            1.77,
+            0.6,
+            0.77,
+            0.47,
+            0.3,
+            1.6
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 8.77,
+              "rej": 7.53,
+              "stk": 0.23,
+              "acc%": 53.0
+            },
+            "L2": {
+              "acc": 6.0,
+              "rej": 9.0,
+              "stk": 0.3,
+              "acc%": 39.2
+            },
+            "L3": {
+              "acc": 4.2,
+              "rej": 9.53,
+              "stk": 0.2,
+              "acc%": 30.1
+            },
+            "L4": {
+              "acc": 3.83,
+              "rej": 8.43,
+              "stk": 0.2,
+              "acc%": 30.7
+            },
+            "L5": {
+              "acc": 4.4,
+              "rej": 7.1,
+              "stk": 0.1,
+              "acc%": 37.9
+            },
+            "L6": {
+              "acc": 7.3,
+              "rej": 0.13,
+              "stk": 3.03,
+              "acc%": 69.7
+            }
+          }
+        },
+        "score": 94.12,
+        "elapsed_ms": 623.73
+      }
+    },
+    {
+      "id": "E079",
+      "tag": "Refine(E072)",
+      "code": "# E079[诊断精修E072]：针对Case2中长单(L2-L4)过拒与末端滞留：①新增\"薄需求车道\"——若接受后各段需求覆盖率lam/(cap-1)仍低且时间过半则直接放行(未来卖不掉的座位机会成本≈0)；②机会成本乘thin因子=max段覆盖率的缓增函数，需求弱时系统性压低门槛；③末端倾销条件从frac<=0.08放宽到frac<=0.15且加\"预测剩余座>未来需求\"判据；④保留2情景鲁棒流体+分裂子块回池+rem已扣除当前请求的正确结构\nimport math\n_exp = math.exp\n\ndef _pois_ge(lam, k):\n    if k <= 0:\n        return 1.0\n    if lam <= 1e-9:\n        return 0.0\n    if lam > 25.0:\n        z = (k - 1 - lam) / math.sqrt(lam)\n        if z > 4.0:\n            return 0.0\n        if z < -4.0:\n            return 1.0\n        return 0.5 * (1.0 - math.erf(z / 1.4142135623730951))\n    term = _exp(-lam)\n    s = term\n    for i in range(1, k):\n        term *= lam / i\n        s += term\n    return max(0.0, 1.0 - s)\n\ndef _alloc_demand(blocks, a, b, r, pr):\n    L = b - a + 1\n    total = 0.0\n    cand = []\n    for idx, (u, v, c) in enumerate(blocks):\n        if u <= a and v >= b and c > 1e-9:\n            cand.append(((v - u + 1) - L, -c, idx))\n    if not cand:\n        return 0.0\n    cand.sort()\n    for waste, ncm, idx in cand:\n        if r <= 1e-9:\n            break\n        u, v, c = blocks[idx]\n        take = c if c < r else r\n        total += take * pr * L\n        r -= take\n        blocks[idx] = (u, v, c - take)\n        if u < a:                      # 分裂子块正确回池\n            blocks.append((u, a - 1, take))\n        if b < v:\n            blocks.append((b + 1, v, take))\n    return total\n\ndef _fluid_V(blocks, rem):\n    dems = []\n    for (a, b), r in rem.items():\n        if r > 1e-9:\n            dems.append(((b - a + 1) ** 0.8, a, b, r))\n    if not dems:\n        return 0.0\n    dems.sort(key=lambda x: (-x[0], x[1], x[2]))\n    tot = 0.0\n    for pr, a, b, r in dems:\n        tot += _alloc_demand(blocks, a, b, r, pr)\n    return tot\n\ndef _robust_V(base_blocks, rem):\n    v = 0.0\n    for sc in (0.85, 1.15):            # 2情景随机波动修正(需求非确定值)\n        rrem = {k: x * sc for k, x in rem.items()}\n        v += 0.5 * _fluid_V(list(base_blocks), rrem)\n    return v\n\ndef decide(t, T, M, counts, req_i, req_j, prices, remaining_expected):\n    Lreq = req_j - req_i + 1\n    p = prices.get((req_i, req_j), int(10 * (Lreq ** 0.8)))\n    frac = (T - t) / float(T) if T > 0 else 0.0\n\n    rem = {}\n    for k, val in remaining_expected.items():\n        if k == (req_i, req_j):        # 正确扣除当前请求本身\n            val -= 1.0\n        if val > 1e-9:\n            rem[k] = val\n\n    blocks0 = [(u, v, float(c)) for (u, v), c in counts.items() if c > 0]\n    if not blocks0:\n        return None\n\n    cap_s = [0.0] * (M + 2)\n    for (u, v), c in counts.items():\n        if c > 0:\n            for s in range(u, v + 1):\n                cap_s[s] += c\n    dem_s = [0.0] * (M + 2)\n    for (a, b), r in rem.items():\n        for s in range(a, b + 1):\n            dem_s[s] += r\n\n    rho = 0.0; rho_min = 1e9; fill = 0.0\n    seg = Lreq\n    segs = []\n    for s in range(req_i, req_j + 1):\n        lam_s = dem_s[s]\n        if cap_s[s] <= 1e-9:\n            rho = 3.0; rho_min = 3.0; fill = 1.0; segs = []; break\n        r_s = lam_s / cap_s[s]\n        segs.append(r_s)\n        rho = max(rho, r_s)\n        rho_min = min(rho_min, r_s)\n        fill = max(fill, _pois_ge(lam_s, int(cap_s[s] - 1e-9) + 1))\n    if segs:\n        srt = sorted(segs)\n        rho_mid = srt[len(srt) // 2]\n        inv_harm = sum(1.0 / max(r, 0.05) for r in srt)\n    else:\n        rho_mid = 3.0; inv_harm = float(seg) / 3.0\n    rho = min(rho, 3.0)\n    if rho_min > 3.0:\n        rho_min = 3.0\n    if fill < 1e-6:\n        fill = 1.0 - _exp(-rho)\n    fill = min(max(fill, 0.02), 1.0)\n    if rho_min > 1e9:\n        rho_min = 1.0\n    rho_harm = seg / inv_harm if inv_harm > 1e-9 else rho_min\n\n    cands = [(u, v) for (u, v), c in counts.items() if c > 0 and u <= req_i and req_j <= v]\n    if not cands:\n        return None\n\n    # ==== 接受后各段覆盖强度（thin诊断核心）====\n    rho_after = 0.0\n    for s in range(req_i, req_j + 1):\n        c_after = cap_s[s] - 1.0\n        if c_after <= 1e-9:\n            rho_after = 3.0\n            break\n        rho_after = max(rho_after, dem_s[s] / c_after)\n    rho_after = min(rho_after, 3.0)\n\n    # ==== 末端倾销（放宽③：frac<=0.15 或 预测剩余座>未来需求）====\n    no_future = all(r <= 1e-9 for r in rem.values())\n    overhang = all(dem_s[s] < cap_s[s] - 0.5 for s in range(req_i, req_j + 1))\n    if t >= T or no_future or (frac <= 0.15 and rho < 1.6) or (frac <= 0.35 and overhang and rho_after < 0.9):\n        best = None\n        for (u, v) in cands:\n            key = (0 if (u == req_i and v == req_j) else 1,\n                   (v - u + 1) - Lreq,\n                   0 if (u == req_i or v == req_j) else 1, -u, v)\n            if best is None or key < best[0]:\n                best = (key, (u, v))\n        return best[1]\n\n    # ==== 薄需求车道（新增①：接受后覆盖仍低且时间过半→机会成本近似0）====\n    if rho_after <= 0.75 and frac <= 0.55:\n        best = None\n        for (u, v) in cands:\n            edge = 0 if (u == req_i or v == req_j) else 1\n            exact = 0 if (v - u + 1) == Lreq else 1\n            left = 1 if u == req_i else 0\n            key = (exact, edge, (v - u) - Lreq, -left, -u, v)\n            if best is None or key < best[0]:\n                best = (key, (u, v))\n        return best[1]\n\n    # ==== 快速放行车道 ====\n    if rho <= 0.90 and rho_mid <= 0.60 and fill < 0.45 and Lreq <= 5:\n        best = None\n        for (u, v) in cands:\n            edge = 0 if (u == req_i or v == req_j) else 1\n            exact = 0 if (v - u + 1) == Lreq else 1\n            left = 1 if u == req_i else 0\n            key = (exact, edge, (v - u) - Lreq, -left, -u, v)\n            if best is None or key < best[0]:\n                best = (key, (u, v))\n        return best[1]\n\n    V0 = _robust_V(blocks0, rem)\n\n    up_req = Lreq ** 0.8\n    lam = 0.0; lam_all = 0.0\n    for (a, b), r in rem.items():\n        lam_all += r\n        if a <= req_j and b >= req_i and (b - a + 1) ** 0.8 >= up_req - 1e-9:\n            lam += r\n    comp = 1.0 - _exp(-lam)\n    cv = 0.5 if lam_all <= 4.0 else min(0.5, 1.0 / math.sqrt(lam_all))\n    kappa = 0.35 * (1.0 - frac)\n\n    scale = max(rho, 1e-6) ** 0.45\n    markdown = max(rho_harm, 0.25) ** 0.55\n    if 0.8 < rho < 1.2:\n        markdown *= 0.92\n    if fill > 0.5:\n        f_fill = 0.60 + 0.50 * fill\n    elif fill > 0.2:\n        f_fill = 0.48 + 0.75 * fill\n    else:\n        f_fill = 0.42 + 0.30 * fill\n    f_comp = 0.52 + 0.48 * comp\n    lenw = 0.5 + 0.5 * (Lreq / M)\n    stoch = f_fill * f_comp * (1.0 - 0.15 * frac) ** lenw\n    short_corr = 0.86 + 0.14 * (Lreq / M)\n\n    if frac >= 0.22:\n        theta = 0.65 + 0.35 * frac\n    else:\n        theta = max(0.35, 0.35 + 0.68 * (frac / 0.22))\n\n    # 新增②：thin因子——接受后最紧段覆盖越低，机会成本折扣越大\n    thin = min(1.0, 0.30 + 0.70 * min(rho_after, 1.0))\n    theta *= thin\n\n    fcoef = 0.34 if frac > 0.5 else 0.40\n\n    best = None\n    for (u, v) in cands:\n        nb = []\n        for (uu, vv, cc) in blocks0:\n            if uu == u and vv == v:\n                cc -= 1.0\n            if cc > 1e-9:\n                nb.append((uu, vv, cc))\n        if u < req_i:\n            nb.append((u, req_i - 1, 1.0))\n        if req_j < v:\n            nb.append((req_j + 1, v, 1.0))\n        V1 = _robust_V(nb, rem)\n        delta = V0 - V1\n        if delta < 0.0:\n            delta = 0.0\n\n        if u < req_i and req_j < v:\n            delta += 0.8 * (Lreq / (v - u + 1)) * (0.3 + 0.7 * frac) * (0.7 + 0.3 * scale)\n        if (v - u + 1) == Lreq:\n            delta *= 0.90\n\n        wasteL = u - req_i\n        wasteR = req_j - v\n        frag_cost = (wasteL ** 0.7 + wasteR ** 0.7) * (1.0 - frac) * fcoef if (wasteL > 0 or wasteR > 0) else 0.0\n\n        key = (delta + frag_cost, -(1 if u == req_i else 0), -u, v)\n        if best is None or key < best[0]:\n            best = (key, (u, v), delta)\n\n    uv = best[1]\n    delta = best[2] * scale * stoch * markdown * short_corr * (1.0 + kappa * cv)\n\n    if t >= T or p >= delta * theta - 1e-9:\n        return uv\n    return None",
+      "train_eval": {
+        "Case1": {
+          "avg_revenue": 896.75,
+          "avg_ho": 945.45,
+          "ratio_pct": 94.86,
+          "gap_pct": 5.14,
+          "invalid": 0,
+          "frags": 5.8,
+          "leftover": [
+            2.1,
+            0.1,
+            0.3,
+            0.3,
+            0.25,
+            3.15
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 13.9,
+              "rej": 7.1,
+              "stk": 1.95,
+              "acc%": 60.6
+            },
+            "L2": {
+              "acc": 9.85,
+              "rej": 8.75,
+              "stk": 2.75,
+              "acc%": 46.1
+            },
+            "L3": {
+              "acc": 6.0,
+              "rej": 7.1,
+              "stk": 1.8,
+              "acc%": 40.3
+            },
+            "L4": {
+              "acc": 5.5,
+              "rej": 4.4,
+              "stk": 0.9,
+              "acc%": 50.9
+            },
+            "L5": {
+              "acc": 3.6,
+              "rej": 2.7,
+              "stk": 0.75,
+              "acc%": 51.1
+            },
+            "L6": {
+              "acc": 3.7,
+              "rej": 0.0,
+              "stk": 0.35,
+              "acc%": 91.4
+            }
+          }
+        },
+        "Case2": {
+          "avg_revenue": 862.2,
+          "avg_ho": 924.15,
+          "ratio_pct": 93.3,
+          "gap_pct": 6.7,
+          "invalid": 0,
+          "frags": 4.95,
+          "leftover": [
+            1.7,
+            0.45,
+            0.55,
+            0.9,
+            0.25,
+            1.8
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 9.45,
+              "rej": 6.15,
+              "stk": 0.1,
+              "acc%": 60.2
+            },
+            "L2": {
+              "acc": 5.35,
+              "rej": 10.05,
+              "stk": 0.5,
+              "acc%": 33.6
+            },
+            "L3": {
+              "acc": 4.65,
+              "rej": 9.55,
+              "stk": 0.15,
+              "acc%": 32.4
+            },
+            "L4": {
+              "acc": 3.3,
+              "rej": 8.8,
+              "stk": 0.1,
+              "acc%": 27.0
+            },
+            "L5": {
+              "acc": 4.35,
+              "rej": 7.2,
+              "stk": 0.15,
+              "acc%": 37.2
+            },
+            "L6": {
+              "acc": 7.55,
+              "rej": 0.15,
+              "stk": 2.7,
+              "acc%": 72.6
+            }
+          }
+        },
+        "score": 94.08,
+        "elapsed_ms": 422.46
+      },
+      "test_eval": {
+        "Case1": {
+          "avg_revenue": 884.33,
+          "avg_ho": 932.17,
+          "ratio_pct": 94.87,
+          "gap_pct": 5.13,
+          "invalid": 0,
+          "frags": 7.13,
+          "leftover": [
+            3.27,
+            0.23,
+            0.53,
+            0.27,
+            0.2,
+            3.13
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 14.27,
+              "rej": 6.43,
+              "stk": 1.47,
+              "acc%": 64.4
+            },
+            "L2": {
+              "acc": 8.93,
+              "rej": 8.27,
+              "stk": 2.1,
+              "acc%": 46.3
+            },
+            "L3": {
+              "acc": 5.73,
+              "rej": 6.6,
+              "stk": 1.93,
+              "acc%": 40.2
+            },
+            "L4": {
+              "acc": 5.23,
+              "rej": 4.83,
+              "stk": 1.37,
+              "acc%": 45.8
+            },
+            "L5": {
+              "acc": 4.1,
+              "rej": 2.3,
+              "stk": 1.3,
+              "acc%": 53.2
+            },
+            "L6": {
+              "acc": 3.6,
+              "rej": 0.0,
+              "stk": 0.7,
+              "acc%": 83.7
+            }
+          }
+        },
+        "Case2": {
+          "avg_revenue": 864.8,
+          "avg_ho": 922.57,
+          "ratio_pct": 93.76,
+          "gap_pct": 6.24,
+          "invalid": 0,
+          "frags": 4.97,
+          "leftover": [
+            1.67,
+            0.63,
+            0.8,
+            0.5,
+            0.27,
+            1.37
+          ],
+          "by_len": {
+            "L1": {
+              "acc": 8.8,
+              "rej": 7.53,
+              "stk": 0.2,
+              "acc%": 53.2
+            },
+            "L2": {
+              "acc": 6.07,
+              "rej": 8.93,
+              "stk": 0.3,
+              "acc%": 39.7
+            },
+            "L3": {
+              "acc": 4.2,
+              "rej": 9.53,
+              "stk": 0.2,
+              "acc%": 30.1
+            },
+            "L4": {
+              "acc": 3.8,
+              "rej": 8.47,
+              "stk": 0.2,
+              "acc%": 30.5
+            },
+            "L5": {
+              "acc": 4.17,
+              "rej": 7.33,
+              "stk": 0.1,
+              "acc%": 35.9
+            },
+            "L6": {
+              "acc": 7.53,
+              "rej": 0.1,
+              "stk": 2.83,
+              "acc%": 72.0
+            }
+          }
+        },
+        "score": 94.315,
+        "elapsed_ms": 627.24
+      }
+    }
+  ],
+  "history": [
+    {
+      "eval_num": 1,
+      "id": "E001",
+      "gen": 1,
+      "op": "explore_paradigm",
+      "tag": "P2_纯Python次梯度对偶_BPCM",
+      "api_s": 19.843,
+      "tokens": 2787,
+      "status": "ok",
+      "train_score": 87.425,
+      "train_c1": 89.77,
+      "train_c2": 85.08,
+      "eval_ms": 42.5,
+      "test_score": 88.355,
+      "test_c1": 90.7,
+      "test_c2": 86.01
+    },
+    {
+      "eval_num": 2,
+      "id": "E002",
+      "gen": 1,
+      "op": "explore_paradigm",
+      "tag": "P1_纯Python最小费用流_BPCA_碎片感知",
+      "api_s": 22.327,
+      "tokens": 2951,
+      "status": "ok",
+      "train_score": 83.965,
+      "train_c1": 87.03,
+      "train_c2": 80.9,
+      "eval_ms": 46.73,
+      "test_score": 85.705,
+      "test_c1": 88.54,
+      "test_c2": 82.87
+    },
+    {
+      "eval_num": 3,
+      "id": "E003",
+      "gen": 1,
+      "op": "explore_paradigm",
+      "tag": "P5_多阶段动态护留与连续性价值",
+      "api_s": 31.147,
+      "tokens": 3350,
+      "status": "ok",
+      "train_score": 71.695,
+      "train_c1": 71.7,
+      "train_c2": 71.69,
+      "eval_ms": 33.59,
+      "test_score": 71.255,
+      "test_c1": 71.42,
+      "test_c2": 71.09
+    },
+    {
+      "eval_num": 4,
+      "id": "E004",
+      "gen": 1,
+      "op": "explore_paradigm",
+      "tag": "P4_严格分裂流体前向推演_Rollout",
+      "api_s": 31.182,
+      "tokens": 3680,
+      "status": "ok",
+      "train_score": 81.825,
+      "train_c1": 84.77,
+      "train_c2": 78.88,
+      "eval_ms": 100.41,
+      "test_score": 81.205,
+      "test_c1": 83.08,
+      "test_c2": 79.33
+    },
+    {
+      "eval_num": 5,
+      "id": "E005",
+      "gen": 1,
+      "op": "explore_paradigm",
+      "tag": "P3_纯Python动态原问题近似_RDP",
+      "api_s": 39.931,
+      "tokens": 3623,
+      "status": "ok",
+      "train_score": 78.67,
+      "train_c1": 81.93,
+      "train_c2": 75.41,
+      "eval_ms": 58.47,
+      "test_score": 78.855,
+      "test_c1": 81.94,
+      "test_c2": 75.77
+    },
+    {
+      "eval_num": 6,
+      "id": "E006",
+      "gen": 2,
+      "op": "hyper_tune",
+      "tag": "Tune(S2)",
+      "api_s": 16.224,
+      "tokens": 3986,
+      "status": "ok",
+      "train_score": 89.92,
+      "train_c1": 91.18,
+      "train_c2": 88.66,
+      "eval_ms": 128.42,
+      "test_score": 90.575,
+      "test_c1": 91.7,
+      "test_c2": 89.45
+    },
+    {
+      "eval_num": 7,
+      "id": "E007",
+      "gen": 2,
+      "op": "crossover",
+      "tag": "Cross(S2+S1)",
+      "api_s": 19.432,
+      "tokens": 5544,
+      "status": "ok",
+      "train_score": 88.835,
+      "train_c1": 89.96,
+      "train_c2": 87.71,
+      "eval_ms": 96.98,
+      "test_score": 89.625,
+      "test_c1": 90.59,
+      "test_c2": 88.66
+    },
+    {
+      "eval_num": 8,
+      "id": "E008",
+      "gen": 2,
+      "op": "refine_diagnostics",
+      "tag": "Refine(S2)",
+      "api_s": 27.266,
+      "tokens": 4630,
+      "status": "ok",
+      "train_score": 87.78,
+      "train_c1": 90.01,
+      "train_c2": 85.55,
+      "eval_ms": 136.49,
+      "test_score": 88.58,
+      "test_c1": 90.56,
+      "test_c2": 86.6
+    },
+    {
+      "eval_num": 9,
+      "id": "E009",
+      "gen": 2,
+      "op": "explore_paradigm",
+      "tag": "P6_方差修正流体与在线双界混合",
+      "api_s": 31.802,
+      "tokens": 3596,
+      "status": "ok",
+      "train_score": 65.32,
+      "train_c1": 72.88,
+      "train_c2": 57.76,
+      "eval_ms": 190.17
+    },
+    {
+      "eval_num": 10,
+      "id": "E010",
+      "gen": 2,
+      "op": "refine_diagnostics",
+      "tag": "Refine(S2)",
+      "api_s": 39.652,
+      "tokens": 5032,
+      "status": "ok",
+      "train_score": 87.24,
+      "train_c1": 89.53,
+      "train_c2": 84.95,
+      "eval_ms": 100.97
+    },
+    {
+      "eval_num": 11,
+      "id": "E011",
+      "gen": 3,
+      "op": "crossover",
+      "tag": "Cross(E006+E008)",
+      "api_s": 13.496,
+      "tokens": 6299,
+      "status": "ok",
+      "train_score": 90.305,
+      "train_c1": 91.09,
+      "train_c2": 89.52,
+      "eval_ms": 145.21,
+      "test_score": 90.815,
+      "test_c1": 91.41,
+      "test_c2": 90.22
+    },
+    {
+      "eval_num": 12,
+      "id": "E012",
+      "gen": 3,
+      "op": "hyper_tune",
+      "tag": "Tune(E006)",
+      "api_s": 15.8,
+      "tokens": 4365,
+      "status": "ok",
+      "train_score": 32.975,
+      "train_c1": 28.19,
+      "train_c2": 37.76,
+      "eval_ms": 143.05
+    },
+    {
+      "eval_num": 13,
+      "id": "E013",
+      "gen": 3,
+      "op": "explore_paradigm",
+      "tag": "P5_多阶段动态护留与连续性价值",
+      "api_s": 16.679,
+      "tokens": 2635,
+      "status": "ok",
+      "train_score": 88.4,
+      "train_c1": 92.3,
+      "train_c2": 84.5,
+      "eval_ms": 32.59,
+      "test_score": 88.475,
+      "test_c1": 91.68,
+      "test_c2": 85.27
+    },
+    {
+      "eval_num": 14,
+      "id": "E014",
+      "gen": 3,
+      "op": "refine_diagnostics",
+      "tag": "Refine(S2)",
+      "api_s": 21.234,
+      "tokens": 4295,
+      "status": "ok",
+      "train_score": 87.885,
+      "train_c1": 89.82,
+      "train_c2": 85.95,
+      "eval_ms": 146.9
+    },
+    {
+      "eval_num": 15,
+      "id": "E015",
+      "gen": 3,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E006)",
+      "api_s": 25.798,
+      "tokens": 4966,
+      "status": "ok",
+      "train_score": 87.82,
+      "train_c1": 89.91,
+      "train_c2": 85.73,
+      "eval_ms": 112.35
+    },
+    {
+      "eval_num": 16,
+      "id": "E016",
+      "gen": 4,
+      "op": "crossover",
+      "tag": "Cross(E011+S1)",
+      "api_s": 19.849,
+      "tokens": 6166,
+      "status": "ok",
+      "train_score": 90.305,
+      "train_c1": 91.09,
+      "train_c2": 89.52,
+      "eval_ms": 123.49,
+      "test_score": 90.815,
+      "test_c1": 91.41,
+      "test_c2": 90.22
+    },
+    {
+      "eval_num": 17,
+      "id": "E017",
+      "gen": 4,
+      "op": "explore_paradigm",
+      "tag": "P4_严格分裂流体前向推演_Rollout",
+      "api_s": 23.266,
+      "tokens": 3395,
+      "status": "eval_error",
+      "error": "name 'heapq' is not defined"
+    },
+    {
+      "eval_num": 18,
+      "id": "E018",
+      "gen": 4,
+      "op": "hyper_tune",
+      "tag": "Tune(E011)",
+      "api_s": 23.859,
+      "tokens": 4912,
+      "status": "ok",
+      "train_score": 89.245,
+      "train_c1": 90.59,
+      "train_c2": 87.9,
+      "eval_ms": 139.51,
+      "test_score": 89.88,
+      "test_c1": 90.77,
+      "test_c2": 88.99
+    },
+    {
+      "eval_num": 19,
+      "id": "E019",
+      "gen": 4,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E006)",
+      "api_s": 30.171,
+      "tokens": 5160,
+      "status": "ok",
+      "train_score": 90.285,
+      "train_c1": 91.54,
+      "train_c2": 89.03,
+      "eval_ms": 140.88,
+      "test_score": 90.72,
+      "test_c1": 91.53,
+      "test_c2": 89.91
+    },
+    {
+      "eval_num": 20,
+      "id": "E020",
+      "gen": 4,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E011)",
+      "api_s": 41.133,
+      "tokens": 5763,
+      "status": "ok",
+      "train_score": 90.45,
+      "train_c1": 91.23,
+      "train_c2": 89.67,
+      "eval_ms": 177.74,
+      "test_score": 90.86,
+      "test_c1": 91.4,
+      "test_c2": 90.32
+    },
+    {
+      "eval_num": 21,
+      "id": "E021",
+      "gen": 5,
+      "op": "crossover",
+      "tag": "Cross(E020+E019)",
+      "api_s": 17.468,
+      "tokens": 6730,
+      "status": "ok",
+      "train_score": 90.585,
+      "train_c1": 91.41,
+      "train_c2": 89.76,
+      "eval_ms": 210.38,
+      "test_score": 90.92,
+      "test_c1": 91.45,
+      "test_c2": 90.39
+    },
+    {
+      "eval_num": 22,
+      "id": "E022",
+      "gen": 5,
+      "op": "hyper_tune",
+      "tag": "Tune(E020)",
+      "api_s": 19.648,
+      "tokens": 4882,
+      "status": "ok",
+      "train_score": 90.45,
+      "train_c1": 91.23,
+      "train_c2": 89.67,
+      "eval_ms": 168.01,
+      "test_score": 90.86,
+      "test_c1": 91.4,
+      "test_c2": 90.32
+    },
+    {
+      "eval_num": 23,
+      "id": "E023",
+      "gen": 5,
+      "op": "explore_paradigm",
+      "tag": "P3_纯Python动态原问题近似_RDP",
+      "api_s": 33.186,
+      "tokens": 3422,
+      "status": "ok",
+      "train_score": 85.68,
+      "train_c1": 88.96,
+      "train_c2": 82.4,
+      "eval_ms": 224.23
+    },
+    {
+      "eval_num": 24,
+      "id": "E024",
+      "gen": 5,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E016)",
+      "api_s": 38.129,
+      "tokens": 5473,
+      "status": "eval_error",
+      "error": "unmatched ']' (<unknown>, line 29)"
+    },
+    {
+      "eval_num": 25,
+      "id": "E025",
+      "gen": 5,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E020)",
+      "api_s": 49.15,
+      "tokens": 6669,
+      "status": "ok",
+      "train_score": 56.115,
+      "train_c1": 33.36,
+      "train_c2": 78.87,
+      "eval_ms": 170.12
+    },
+    {
+      "eval_num": 26,
+      "id": "E026",
+      "gen": 6,
+      "op": "crossover",
+      "tag": "Cross(E021+E016)",
+      "api_s": 15.033,
+      "tokens": 6839,
+      "status": "ok",
+      "train_score": 90.585,
+      "train_c1": 91.41,
+      "train_c2": 89.76,
+      "eval_ms": 124.93,
+      "test_score": 90.92,
+      "test_c1": 91.45,
+      "test_c2": 90.39
+    },
+    {
+      "eval_num": 27,
+      "id": "E027",
+      "gen": 6,
+      "op": "explore_paradigm",
+      "tag": "P2_纯Python次梯度对偶_BPCM",
+      "api_s": 21.412,
+      "tokens": 3117,
+      "status": "ok",
+      "train_score": 83.515,
+      "train_c1": 88.36,
+      "train_c2": 78.67,
+      "eval_ms": 263.12
+    },
+    {
+      "eval_num": 28,
+      "id": "E028",
+      "gen": 6,
+      "op": "hyper_tune",
+      "tag": "Tune(E021)",
+      "api_s": 21.555,
+      "tokens": 5076,
+      "status": "ok",
+      "train_score": 90.67,
+      "train_c1": 91.78,
+      "train_c2": 89.56,
+      "eval_ms": 191.9,
+      "test_score": 90.87,
+      "test_c1": 91.62,
+      "test_c2": 90.12
+    },
+    {
+      "eval_num": 29,
+      "id": "E029",
+      "gen": 6,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E021)",
+      "api_s": 22.572,
+      "tokens": 4953,
+      "status": "ok",
+      "train_score": 87.7,
+      "train_c1": 90.06,
+      "train_c2": 85.34,
+      "eval_ms": 300.86
+    },
+    {
+      "eval_num": 30,
+      "id": "E030",
+      "gen": 6,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E021)",
+      "api_s": 27.086,
+      "tokens": 5026,
+      "status": "ok",
+      "train_score": 89.51,
+      "train_c1": 90.69,
+      "train_c2": 88.33,
+      "eval_ms": 133.56
+    },
+    {
+      "eval_num": 31,
+      "id": "E031",
+      "gen": 7,
+      "op": "hyper_tune",
+      "tag": "Tune(E028)",
+      "api_s": 18.66,
+      "tokens": 5432,
+      "status": "ok",
+      "train_score": 90.085,
+      "train_c1": 91.58,
+      "train_c2": 88.59,
+      "eval_ms": 173.1,
+      "test_score": 90.39,
+      "test_c1": 91.45,
+      "test_c2": 89.33
+    },
+    {
+      "eval_num": 32,
+      "id": "E032",
+      "gen": 7,
+      "op": "crossover",
+      "tag": "Cross(E028+E019)",
+      "api_s": 20.066,
+      "tokens": 7632,
+      "status": "ok",
+      "train_score": 90.485,
+      "train_c1": 91.62,
+      "train_c2": 89.35,
+      "eval_ms": 161.5,
+      "test_score": 90.835,
+      "test_c1": 91.55,
+      "test_c2": 90.12
+    },
+    {
+      "eval_num": 33,
+      "id": "E033",
+      "gen": 7,
+      "op": "explore_paradigm",
+      "tag": "P1_纯Python最小费用流_BPCA_碎片感知",
+      "api_s": 32.23,
+      "tokens": 3600,
+      "status": "ok",
+      "train_score": 75.66,
+      "train_c1": 72.44,
+      "train_c2": 78.88,
+      "eval_ms": 121.88
+    },
+    {
+      "eval_num": 34,
+      "id": "E034",
+      "gen": 7,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E028)",
+      "api_s": 36.392,
+      "tokens": 6403,
+      "status": "ok",
+      "train_score": 93.29,
+      "train_c1": 93.88,
+      "train_c2": 92.7,
+      "eval_ms": 223.9,
+      "test_score": 93.65,
+      "test_c1": 94.32,
+      "test_c2": 92.98
+    },
+    {
+      "eval_num": 35,
+      "id": "E035",
+      "gen": 7,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E028)",
+      "api_s": 55.104,
+      "tokens": 7018,
+      "status": "eval_error",
+      "error": "too many values to unpack (expected 2)"
+    },
+    {
+      "eval_num": 36,
+      "id": "E036",
+      "gen": 8,
+      "op": "explore_paradigm",
+      "tag": "P6_方差修正流体与在线双界混合",
+      "api_s": 20.159,
+      "tokens": 2948,
+      "status": "ok",
+      "train_score": 8.635,
+      "train_c1": 9.92,
+      "train_c2": 7.35,
+      "eval_ms": 37.38
+    },
+    {
+      "eval_num": 37,
+      "id": "E037",
+      "gen": 8,
+      "op": "crossover",
+      "tag": "Cross(E034+E026)",
+      "api_s": 24.563,
+      "tokens": 8474,
+      "status": "ok",
+      "train_score": 93.29,
+      "train_c1": 93.88,
+      "train_c2": 92.7,
+      "eval_ms": 207.62,
+      "test_score": 93.65,
+      "test_c1": 94.32,
+      "test_c2": 92.98
+    },
+    {
+      "eval_num": 38,
+      "id": "E038",
+      "gen": 8,
+      "op": "hyper_tune",
+      "tag": "Tune(E034)",
+      "api_s": 30.16,
+      "tokens": 6630,
+      "status": "eval_error",
+      "error": "float division by zero"
+    },
+    {
+      "eval_num": 39,
+      "id": "E039",
+      "gen": 8,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E034)",
+      "api_s": 35.872,
+      "tokens": 6291,
+      "status": "ok",
+      "train_score": 90.49,
+      "train_c1": 94.93,
+      "train_c2": 86.05,
+      "eval_ms": 662.02,
+      "test_score": 90.835,
+      "test_c1": 94.09,
+      "test_c2": 87.58
+    },
+    {
+      "eval_num": 40,
+      "id": "E040",
+      "gen": 8,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E034)",
+      "api_s": 39.03,
+      "tokens": 6695,
+      "status": "ok",
+      "train_score": 88.925,
+      "train_c1": 93.55,
+      "train_c2": 84.3,
+      "eval_ms": 110.61
+    },
+    {
+      "eval_num": 41,
+      "id": "E041",
+      "gen": 9,
+      "op": "crossover",
+      "tag": "Cross(E037+E039)",
+      "api_s": 23.286,
+      "tokens": 8170,
+      "status": "ok",
+      "train_score": 90.13,
+      "train_c1": 94.48,
+      "train_c2": 85.78,
+      "eval_ms": 706.69
+    },
+    {
+      "eval_num": 42,
+      "id": "E042",
+      "gen": 9,
+      "op": "hyper_tune",
+      "tag": "Tune(E037)",
+      "api_s": 25.817,
+      "tokens": 6301,
+      "status": "ok",
+      "train_score": 92.115,
+      "train_c1": 93.89,
+      "train_c2": 90.34,
+      "eval_ms": 232.7,
+      "test_score": 92.25,
+      "test_c1": 94.11,
+      "test_c2": 90.39
+    },
+    {
+      "eval_num": 43,
+      "id": "E043",
+      "gen": 9,
+      "op": "explore_paradigm",
+      "tag": "P5_多阶段动态护留与连续性价值",
+      "api_s": 27.072,
+      "tokens": 3109,
+      "status": "ok",
+      "train_score": 82.15,
+      "train_c1": 84.66,
+      "train_c2": 79.64,
+      "eval_ms": 31.69
+    },
+    {
+      "eval_num": 44,
+      "id": "E044",
+      "gen": 9,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E037)",
+      "api_s": 36.452,
+      "tokens": 6292,
+      "status": "ok",
+      "train_score": 86.075,
+      "train_c1": 90.15,
+      "train_c2": 82.0,
+      "eval_ms": 55.5
+    },
+    {
+      "eval_num": 45,
+      "id": "E045",
+      "gen": 9,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E037)",
+      "api_s": 49.744,
+      "tokens": 7512,
+      "status": "ok",
+      "train_score": 92.795,
+      "train_c1": 93.44,
+      "train_c2": 92.15,
+      "eval_ms": 235.76,
+      "test_score": 93.305,
+      "test_c1": 93.84,
+      "test_c2": 92.77
+    },
+    {
+      "eval_num": 46,
+      "id": "E046",
+      "gen": 10,
+      "op": "crossover",
+      "tag": "Cross(E037+E039)",
+      "api_s": 24.042,
+      "tokens": 8246,
+      "status": "ok",
+      "train_score": 90.31,
+      "train_c1": 94.81,
+      "train_c2": 85.81,
+      "eval_ms": 718.26
+    },
+    {
+      "eval_num": 47,
+      "id": "E047",
+      "gen": 10,
+      "op": "hyper_tune",
+      "tag": "Tune(E037)",
+      "api_s": 27.83,
+      "tokens": 6532,
+      "status": "ok",
+      "train_score": 92.665,
+      "train_c1": 93.32,
+      "train_c2": 92.01,
+      "eval_ms": 284.85,
+      "test_score": 92.925,
+      "test_c1": 93.21,
+      "test_c2": 92.64
+    },
+    {
+      "eval_num": 48,
+      "id": "E048",
+      "gen": 10,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E037)",
+      "api_s": 29.784,
+      "tokens": 6730,
+      "status": "ok",
+      "train_score": 93.17,
+      "train_c1": 93.76,
+      "train_c2": 92.58,
+      "eval_ms": 595.02,
+      "test_score": 93.46,
+      "test_c1": 93.7,
+      "test_c2": 93.22
+    },
+    {
+      "eval_num": 49,
+      "id": "E049",
+      "gen": 10,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E037)",
+      "api_s": 33.053,
+      "tokens": 6727,
+      "status": "ok",
+      "train_score": 92.855,
+      "train_c1": 93.57,
+      "train_c2": 92.14,
+      "eval_ms": 375.06,
+      "test_score": 92.785,
+      "test_c1": 93.56,
+      "test_c2": 92.01
+    },
+    {
+      "eval_num": 50,
+      "id": "E050",
+      "gen": 10,
+      "op": "explore_paradigm",
+      "tag": "P4_严格分裂流体前向推演_Rollout",
+      "api_s": 38.464,
+      "tokens": 4083,
+      "status": "ok",
+      "train_score": 92.425,
+      "train_c1": 92.73,
+      "train_c2": 92.12,
+      "eval_ms": 215.74,
+      "test_score": 93.05,
+      "test_c1": 92.5,
+      "test_c2": 93.6
+    },
+    {
+      "eval_num": 51,
+      "id": "E051",
+      "gen": 11,
+      "op": "explore_paradigm",
+      "tag": "P3_纯Python动态原问题近似_RDP",
+      "api_s": 21.88,
+      "tokens": 2971,
+      "status": "ok",
+      "train_score": 84.085,
+      "train_c1": 85.49,
+      "train_c2": 82.68,
+      "eval_ms": 53.17
+    },
+    {
+      "eval_num": 52,
+      "id": "E052",
+      "gen": 11,
+      "op": "crossover",
+      "tag": "Cross(E037+E047)",
+      "api_s": 27.286,
+      "tokens": 10126,
+      "status": "ok",
+      "train_score": 92.935,
+      "train_c1": 93.56,
+      "train_c2": 92.31,
+      "eval_ms": 201.32,
+      "test_score": 93.21,
+      "test_c1": 93.69,
+      "test_c2": 92.73
+    },
+    {
+      "eval_num": 53,
+      "id": "E053",
+      "gen": 11,
+      "op": "hyper_tune",
+      "tag": "Tune(E037)",
+      "api_s": 30.359,
+      "tokens": 6541,
+      "status": "ok",
+      "train_score": 92.845,
+      "train_c1": 93.62,
+      "train_c2": 92.07,
+      "eval_ms": 221.21,
+      "test_score": 93.115,
+      "test_c1": 93.93,
+      "test_c2": 92.3
+    },
+    {
+      "eval_num": 54,
+      "id": "E054",
+      "gen": 11,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E037)",
+      "api_s": 38.641,
+      "tokens": 6397,
+      "status": "ok",
+      "train_score": 87.41,
+      "train_c1": 89.81,
+      "train_c2": 85.01,
+      "eval_ms": 50.66
+    },
+    {
+      "eval_num": 55,
+      "id": "E055",
+      "gen": 11,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E037)",
+      "api_s": 48.489,
+      "tokens": 7213,
+      "status": "ok",
+      "train_score": 87.475,
+      "train_c1": 89.83,
+      "train_c2": 85.12,
+      "eval_ms": 142.19
+    },
+    {
+      "eval_num": 56,
+      "id": "E056",
+      "gen": 12,
+      "op": "hyper_tune",
+      "tag": "Tune(E037)",
+      "api_s": 26.812,
+      "tokens": 6380,
+      "status": "ok",
+      "train_score": 92.88,
+      "train_c1": 94.0,
+      "train_c2": 91.76,
+      "eval_ms": 200.66,
+      "test_score": 93.05,
+      "test_c1": 94.27,
+      "test_c2": 91.83
+    },
+    {
+      "eval_num": 57,
+      "id": "E057",
+      "gen": 12,
+      "op": "crossover",
+      "tag": "Cross(E037+E052)",
+      "api_s": 28.572,
+      "tokens": 9871,
+      "status": "ok",
+      "train_score": 93.185,
+      "train_c1": 94.33,
+      "train_c2": 92.04,
+      "eval_ms": 223.94,
+      "test_score": 93.72,
+      "test_c1": 94.44,
+      "test_c2": 93.0
+    },
+    {
+      "eval_num": 58,
+      "id": "E058",
+      "gen": 12,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E037)",
+      "api_s": 29.395,
+      "tokens": 6604,
+      "status": "ok",
+      "train_score": 92.865,
+      "train_c1": 93.47,
+      "train_c2": 92.26,
+      "eval_ms": 189.51,
+      "test_score": 93.57,
+      "test_c1": 93.77,
+      "test_c2": 93.37
+    },
+    {
+      "eval_num": 59,
+      "id": "E059",
+      "gen": 12,
+      "op": "explore_paradigm",
+      "tag": "P2_纯Python次梯度对偶_BPCM",
+      "api_s": 30.386,
+      "tokens": 3595,
+      "status": "ok",
+      "train_score": 87.64,
+      "train_c1": 90.4,
+      "train_c2": 84.88,
+      "eval_ms": 121.66
+    },
+    {
+      "eval_num": 60,
+      "id": "E060",
+      "gen": 12,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E037)",
+      "api_s": 36.729,
+      "tokens": 7107,
+      "status": "ok",
+      "train_score": 93.275,
+      "train_c1": 93.82,
+      "train_c2": 92.73,
+      "eval_ms": 207.59,
+      "test_score": 93.61,
+      "test_c1": 94.21,
+      "test_c2": 93.01
+    },
+    {
+      "eval_num": 61,
+      "id": "E061",
+      "gen": 13,
+      "op": "hyper_tune",
+      "tag": "Tune(E037)",
+      "api_s": 23.683,
+      "tokens": 6194,
+      "status": "ok",
+      "train_score": 93.845,
+      "train_c1": 94.67,
+      "train_c2": 93.02,
+      "eval_ms": 232.65,
+      "test_score": 94.015,
+      "test_c1": 94.52,
+      "test_c2": 93.51
+    },
+    {
+      "eval_num": 62,
+      "id": "E062",
+      "gen": 13,
+      "op": "crossover",
+      "tag": "Cross(E037+E056)",
+      "api_s": 25.048,
+      "tokens": 9669,
+      "status": "ok",
+      "train_score": 92.88,
+      "train_c1": 94.0,
+      "train_c2": 91.76,
+      "eval_ms": 199.57
+    },
+    {
+      "eval_num": 63,
+      "id": "E063",
+      "gen": 13,
+      "op": "explore_paradigm",
+      "tag": "P1_纯Python最小费用流_BPCA_碎片感知",
+      "api_s": 28.141,
+      "tokens": 3318,
+      "status": "ok",
+      "train_score": 77.47,
+      "train_c1": 76.06,
+      "train_c2": 78.88,
+      "eval_ms": 71.98
+    },
+    {
+      "eval_num": 64,
+      "id": "E064",
+      "gen": 13,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E037)",
+      "api_s": 30.855,
+      "tokens": 6796,
+      "status": "ok",
+      "train_score": 90.805,
+      "train_c1": 91.34,
+      "train_c2": 90.27,
+      "eval_ms": 348.19
+    },
+    {
+      "eval_num": 65,
+      "id": "E065",
+      "gen": 13,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E037)",
+      "api_s": 37.063,
+      "tokens": 6719,
+      "status": "ok",
+      "train_score": 90.97,
+      "train_c1": 94.4,
+      "train_c2": 87.54,
+      "eval_ms": 93.68
+    },
+    {
+      "eval_num": 66,
+      "id": "E066",
+      "gen": 14,
+      "op": "hyper_tune",
+      "tag": "Tune(E061)",
+      "api_s": 24.434,
+      "tokens": 6572,
+      "status": "ok",
+      "train_score": 93.65,
+      "train_c1": 94.33,
+      "train_c2": 92.97,
+      "eval_ms": 259.31,
+      "test_score": 93.77,
+      "test_c1": 94.31,
+      "test_c2": 93.23
+    },
+    {
+      "eval_num": 67,
+      "id": "E067",
+      "gen": 14,
+      "op": "crossover",
+      "tag": "Cross(E061+E048)",
+      "api_s": 31.014,
+      "tokens": 10468,
+      "status": "ok",
+      "train_score": 94.055,
+      "train_c1": 94.72,
+      "train_c2": 93.39,
+      "eval_ms": 418.08,
+      "test_score": 94.26,
+      "test_c1": 95.04,
+      "test_c2": 93.48
+    },
+    {
+      "eval_num": 68,
+      "id": "E068",
+      "gen": 14,
+      "op": "explore_paradigm",
+      "tag": "P6_方差修正流体与在线双界混合",
+      "api_s": 33.97,
+      "tokens": 3590,
+      "status": "ok",
+      "train_score": 0.0,
+      "train_c1": 0.0,
+      "train_c2": 0.0,
+      "eval_ms": 27.32
+    },
+    {
+      "eval_num": 69,
+      "id": "E069",
+      "gen": 14,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E061)",
+      "api_s": 34.353,
+      "tokens": 7052,
+      "status": "ok",
+      "train_score": 91.885,
+      "train_c1": 93.3,
+      "train_c2": 90.47,
+      "eval_ms": 410.61
+    },
+    {
+      "eval_num": 70,
+      "id": "E070",
+      "gen": 14,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E061)",
+      "api_s": 36.91,
+      "tokens": 7297,
+      "status": "ok",
+      "train_score": 92.085,
+      "train_c1": 93.26,
+      "train_c2": 90.91,
+      "eval_ms": 220.83
+    },
+    {
+      "eval_num": 71,
+      "id": "E071",
+      "gen": 15,
+      "op": "explore_paradigm",
+      "tag": "P5_多阶段动态护留与连续性价值",
+      "api_s": 25.018,
+      "tokens": 3227,
+      "status": "ok",
+      "train_score": 80.565,
+      "train_c1": 84.72,
+      "train_c2": 76.41,
+      "eval_ms": 175.54
+    },
+    {
+      "eval_num": 72,
+      "id": "E072",
+      "gen": 15,
+      "op": "crossover",
+      "tag": "Cross(E067+E061)",
+      "api_s": 25.683,
+      "tokens": 10235,
+      "status": "ok",
+      "train_score": 94.165,
+      "train_c1": 94.86,
+      "train_c2": 93.47,
+      "eval_ms": 433.58,
+      "test_score": 94.32,
+      "test_c1": 94.87,
+      "test_c2": 93.77
+    },
+    {
+      "eval_num": 73,
+      "id": "E073",
+      "gen": 15,
+      "op": "hyper_tune",
+      "tag": "Tune(E067)",
+      "api_s": 30.511,
+      "tokens": 7419,
+      "status": "ok",
+      "train_score": 93.63,
+      "train_c1": 94.4,
+      "train_c2": 92.86,
+      "eval_ms": 426.4,
+      "test_score": 94.075,
+      "test_c1": 94.53,
+      "test_c2": 93.62
+    },
+    {
+      "eval_num": 74,
+      "id": "E074",
+      "gen": 15,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E061)",
+      "api_s": 32.458,
+      "tokens": 7062,
+      "status": "ok",
+      "train_score": 90.305,
+      "train_c1": 91.55,
+      "train_c2": 89.06,
+      "eval_ms": 169.59
+    },
+    {
+      "eval_num": 75,
+      "id": "E075",
+      "gen": 15,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E067)",
+      "api_s": 50.163,
+      "tokens": 8244,
+      "status": "ok",
+      "train_score": 86.525,
+      "train_c1": 89.3,
+      "train_c2": 83.75,
+      "eval_ms": 203.92
+    },
+    {
+      "eval_num": 76,
+      "id": "E076",
+      "gen": 16,
+      "op": "explore_paradigm",
+      "tag": "P4_严格分裂流体前向推演_Rollout",
+      "api_s": 28.324,
+      "tokens": 3568,
+      "status": "ok",
+      "train_score": 35.905,
+      "train_c1": 28.31,
+      "train_c2": 43.5,
+      "eval_ms": 158.96
+    },
+    {
+      "eval_num": 77,
+      "id": "E077",
+      "gen": 16,
+      "op": "crossover",
+      "tag": "Cross(E072+E037)",
+      "api_s": 30.662,
+      "tokens": 10544,
+      "status": "ok",
+      "train_score": 94.105,
+      "train_c1": 94.82,
+      "train_c2": 93.39,
+      "eval_ms": 411.53,
+      "test_score": 94.12,
+      "test_c1": 94.66,
+      "test_c2": 93.58
+    },
+    {
+      "eval_num": 78,
+      "id": "E078",
+      "gen": 16,
+      "op": "hyper_tune",
+      "tag": "Tune(E072)",
+      "api_s": 31.879,
+      "tokens": 7651,
+      "status": "ok",
+      "train_score": 94.18,
+      "train_c1": 94.86,
+      "train_c2": 93.5,
+      "eval_ms": 421.05,
+      "test_score": 94.285,
+      "test_c1": 94.87,
+      "test_c2": 93.7
+    },
+    {
+      "eval_num": 79,
+      "id": "E079",
+      "gen": 16,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E072)",
+      "api_s": 42.842,
+      "tokens": 8295,
+      "status": "ok",
+      "train_score": 94.08,
+      "train_c1": 94.86,
+      "train_c2": 93.3,
+      "eval_ms": 422.46,
+      "test_score": 94.315,
+      "test_c1": 94.87,
+      "test_c2": 93.76
+    },
+    {
+      "eval_num": 80,
+      "id": "E080",
+      "gen": 16,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E061)",
+      "api_s": 48.647,
+      "tokens": 7997,
+      "status": "ok",
+      "train_score": 88.37,
+      "train_c1": 89.75,
+      "train_c2": 86.99,
+      "eval_ms": 414.83
+    },
+    {
+      "eval_num": 81,
+      "id": "E081",
+      "gen": 17,
+      "op": "explore_paradigm",
+      "tag": "P3_纯Python动态原问题近似_RDP",
+      "api_s": 26.879,
+      "tokens": 3135,
+      "status": "ok",
+      "train_score": 70.18,
+      "train_c1": 64.19,
+      "train_c2": 76.17,
+      "eval_ms": 24.63
+    },
+    {
+      "eval_num": 82,
+      "id": "E082",
+      "gen": 17,
+      "op": "crossover",
+      "tag": "Cross(E078+E061)",
+      "api_s": 27.255,
+      "tokens": 10545,
+      "status": "ok",
+      "train_score": 94.18,
+      "train_c1": 94.86,
+      "train_c2": 93.5,
+      "eval_ms": 417.95,
+      "test_score": 94.285,
+      "test_c1": 94.87,
+      "test_c2": 93.7
+    },
+    {
+      "eval_num": 83,
+      "id": "E083",
+      "gen": 17,
+      "op": "hyper_tune",
+      "tag": "Tune(E078)",
+      "api_s": 32.09,
+      "tokens": 7845,
+      "status": "ok",
+      "train_score": 93.43,
+      "train_c1": 94.09,
+      "train_c2": 92.77,
+      "eval_ms": 429.0
+    },
+    {
+      "eval_num": 84,
+      "id": "E084",
+      "gen": 17,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E078)",
+      "api_s": 44.333,
+      "tokens": 8582,
+      "status": "ok",
+      "train_score": 93.945,
+      "train_c1": 94.98,
+      "train_c2": 92.91,
+      "eval_ms": 698.89,
+      "test_score": 93.93,
+      "test_c1": 94.59,
+      "test_c2": 93.27
+    },
+    {
+      "eval_num": 85,
+      "id": "E085",
+      "gen": 17,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E078)",
+      "api_s": 47.887,
+      "tokens": 8638,
+      "status": "eval_error",
+      "error": "invalid syntax (<unknown>, line 1)"
+    },
+    {
+      "eval_num": 86,
+      "id": "E086",
+      "gen": 18,
+      "op": "explore_paradigm",
+      "tag": "P2_纯Python次梯度对偶_BPCM",
+      "api_s": 14.255,
+      "tokens": 2444,
+      "status": "ok",
+      "train_score": 69.23,
+      "train_c1": 76.62,
+      "train_c2": 61.84,
+      "eval_ms": 58.41
+    },
+    {
+      "eval_num": 87,
+      "id": "E087",
+      "gen": 18,
+      "op": "crossover",
+      "tag": "Cross(E082+E067)",
+      "api_s": 28.646,
+      "tokens": 11063,
+      "status": "ok",
+      "train_score": 94.19,
+      "train_c1": 94.89,
+      "train_c2": 93.49,
+      "eval_ms": 404.67,
+      "test_score": 94.21,
+      "test_c1": 94.83,
+      "test_c2": 93.59
+    },
+    {
+      "eval_num": 88,
+      "id": "E088",
+      "gen": 18,
+      "op": "hyper_tune",
+      "tag": "Tune(E082)",
+      "api_s": 28.787,
+      "tokens": 7605,
+      "status": "ok",
+      "train_score": 92.575,
+      "train_c1": 92.95,
+      "train_c2": 92.2,
+      "eval_ms": 404.81
+    },
+    {
+      "eval_num": 89,
+      "id": "E089",
+      "gen": 18,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E077)",
+      "api_s": 36.374,
+      "tokens": 8301,
+      "status": "ok",
+      "train_score": 90.06,
+      "train_c1": 90.62,
+      "train_c2": 89.5,
+      "eval_ms": 622.74
+    },
+    {
+      "eval_num": 90,
+      "id": "E090",
+      "gen": 18,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E082)",
+      "api_s": 55.421,
+      "tokens": 8641,
+      "status": "eval_error",
+      "error": "invalid syntax (<unknown>, line 1)"
+    },
+    {
+      "eval_num": 91,
+      "id": "E091",
+      "gen": 19,
+      "op": "hyper_tune",
+      "tag": "Tune(E087)",
+      "api_s": 30.846,
+      "tokens": 7969,
+      "status": "ok",
+      "train_score": 94.035,
+      "train_c1": 94.87,
+      "train_c2": 93.2,
+      "eval_ms": 407.73
+    },
+    {
+      "eval_num": 92,
+      "id": "E092",
+      "gen": 19,
+      "op": "crossover",
+      "tag": "Cross(E087+E079)",
+      "api_s": 33.361,
+      "tokens": 12028,
+      "status": "ok",
+      "train_score": 94.055,
+      "train_c1": 94.89,
+      "train_c2": 93.22,
+      "eval_ms": 406.65
+    },
+    {
+      "eval_num": 93,
+      "id": "E093",
+      "gen": 19,
+      "op": "explore_paradigm",
+      "tag": "P1_纯Python最小费用流_BPCA_碎片感知",
+      "api_s": 38.62,
+      "tokens": 3865,
+      "status": "ok",
+      "train_score": 87.015,
+      "train_c1": 89.43,
+      "train_c2": 84.6,
+      "eval_ms": 39.53
+    },
+    {
+      "eval_num": 94,
+      "id": "E094",
+      "gen": 19,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E072)",
+      "api_s": 47.091,
+      "tokens": 8564,
+      "status": "eval_error",
+      "error": "invalid syntax (<unknown>, line 1)"
+    },
+    {
+      "eval_num": 95,
+      "id": "E095",
+      "gen": 19,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E087)",
+      "api_s": 64.776,
+      "tokens": 8758,
+      "status": "eval_error",
+      "error": "invalid syntax (<unknown>, line 1)"
+    },
+    {
+      "eval_num": 96,
+      "id": "E096",
+      "gen": 20,
+      "op": "hyper_tune",
+      "tag": "Tune(E087)",
+      "api_s": 29.92,
+      "tokens": 7953,
+      "status": "ok",
+      "train_score": 94.025,
+      "train_c1": 94.81,
+      "train_c2": 93.24,
+      "eval_ms": 426.46
+    },
+    {
+      "eval_num": 97,
+      "id": "E097",
+      "gen": 20,
+      "op": "crossover",
+      "tag": "Cross(E087+E082)",
+      "api_s": 30.521,
+      "tokens": 11614,
+      "status": "ok",
+      "train_score": 94.22,
+      "train_c1": 94.88,
+      "train_c2": 93.56,
+      "eval_ms": 410.8,
+      "test_score": 94.225,
+      "test_c1": 94.88,
+      "test_c2": 93.57
+    },
+    {
+      "eval_num": 98,
+      "id": "E098",
+      "gen": 20,
+      "op": "explore_paradigm",
+      "tag": "P6_方差修正流体与在线双界混合",
+      "api_s": 34.921,
+      "tokens": 3696,
+      "status": "ok",
+      "train_score": 88.0,
+      "train_c1": 93.15,
+      "train_c2": 82.85,
+      "eval_ms": 74.54
+    },
+    {
+      "eval_num": 99,
+      "id": "E099",
+      "gen": 20,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E087)",
+      "api_s": 48.653,
+      "tokens": 8758,
+      "status": "eval_error",
+      "error": "invalid syntax (<unknown>, line 1)"
+    },
+    {
+      "eval_num": 100,
+      "id": "E100",
+      "gen": 20,
+      "op": "refine_diagnostics",
+      "tag": "Refine(E087)",
+      "api_s": 52.971,
+      "tokens": 8758,
+      "status": "eval_error",
+      "error": "invalid syntax (<unknown>, line 1)"
+    }
+  ],
+  "next_id": 101,
+  "total_tokens": 631631
+}

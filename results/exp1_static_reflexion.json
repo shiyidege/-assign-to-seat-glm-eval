@@ -1,0 +1,537 @@
+[
+  {
+    "instance": "S1_小规模(3座x6区间)",
+    "N": 3,
+    "M": 6,
+    "total_requests": 6,
+    "exact_optimum": 20,
+    "exact_proven": true,
+    "greedy_by_total_price": 19,
+    "greedy_by_unit_price": 17,
+    "glm_round1_feasible": true,
+    "glm_round1_revenue": 20,
+    "glm_best_revenue": 20,
+    "glm_best_opt_ratio_pct": 100.0,
+    "rounds": [
+      {
+        "round": 1,
+        "feasible": true,
+        "revenue": 20,
+        "opt_ratio_pct": 100.0,
+        "errors": [],
+        "elapsed_s": 13.145,
+        "usage": {
+          "completion_tokens": 854,
+          "completion_tokens_details": {
+            "reasoning_tokens": 662
+          },
+          "prompt_tokens": 587,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "total_tokens": 1441
+        },
+        "assignments": [
+          {
+            "seat": 1,
+            "start": 1,
+            "end": 5
+          },
+          {
+            "seat": 2,
+            "start": 2,
+            "end": 4
+          },
+          {
+            "seat": 2,
+            "start": 5,
+            "end": 6
+          },
+          {
+            "seat": 3,
+            "start": 1,
+            "end": 2
+          },
+          {
+            "seat": 3,
+            "start": 4,
+            "end": 6
+          }
+        ]
+      },
+      {
+        "round": 2,
+        "feasible": true,
+        "revenue": 20,
+        "opt_ratio_pct": 100.0,
+        "errors": [],
+        "elapsed_s": 13.274,
+        "usage": {
+          "completion_tokens": 973,
+          "completion_tokens_details": {
+            "reasoning_tokens": 720
+          },
+          "prompt_tokens": 919,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "total_tokens": 1892
+        },
+        "assignments": [
+          {
+            "seat": 1,
+            "start": 1,
+            "end": 5
+          },
+          {
+            "seat": 2,
+            "start": 2,
+            "end": 4
+          },
+          {
+            "seat": 2,
+            "start": 5,
+            "end": 6
+          },
+          {
+            "seat": 3,
+            "start": 1,
+            "end": 2
+          },
+          {
+            "seat": 3,
+            "start": 4,
+            "end": 6
+          }
+        ]
+      },
+      {
+        "round": 3,
+        "feasible": true,
+        "revenue": 20,
+        "opt_ratio_pct": 100.0,
+        "errors": [],
+        "elapsed_s": 4.231,
+        "usage": {
+          "completion_tokens": 240,
+          "completion_tokens_details": {
+            "reasoning_tokens": 8
+          },
+          "prompt_tokens": 1312,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "total_tokens": 1552
+        },
+        "assignments": [
+          {
+            "seat": 1,
+            "start": 1,
+            "end": 5
+          },
+          {
+            "seat": 2,
+            "start": 2,
+            "end": 4
+          },
+          {
+            "seat": 2,
+            "start": 5,
+            "end": 6
+          },
+          {
+            "seat": 3,
+            "start": 1,
+            "end": 2
+          },
+          {
+            "seat": 3,
+            "start": 4,
+            "end": 6
+          }
+        ]
+      },
+      {
+        "round": 4,
+        "feasible": true,
+        "revenue": 20,
+        "opt_ratio_pct": 100.0,
+        "errors": [],
+        "elapsed_s": 7.283,
+        "usage": {
+          "completion_tokens": 394,
+          "completion_tokens_details": {
+            "reasoning_tokens": 185
+          },
+          "prompt_tokens": 1684,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "total_tokens": 2078
+        },
+        "assignments": [
+          {
+            "seat": 1,
+            "start": 1,
+            "end": 5
+          },
+          {
+            "seat": 2,
+            "start": 2,
+            "end": 4
+          },
+          {
+            "seat": 2,
+            "start": 5,
+            "end": 6
+          },
+          {
+            "seat": 3,
+            "start": 1,
+            "end": 2
+          },
+          {
+            "seat": 3,
+            "start": 4,
+            "end": 6
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "instance": "S2_中规模(5座x6区间)",
+    "N": 5,
+    "M": 6,
+    "total_requests": 14,
+    "exact_optimum": 179,
+    "exact_proven": true,
+    "greedy_by_total_price": 165,
+    "greedy_by_unit_price": 166,
+    "glm_round1_feasible": false,
+    "glm_round1_revenue": 0,
+    "glm_best_revenue": 177,
+    "glm_best_opt_ratio_pct": 98.88,
+    "rounds": [
+      {
+        "round": 1,
+        "feasible": false,
+        "revenue": 0,
+        "opt_ratio_pct": 0.0,
+        "errors": [
+          "JSON 解析失败: 模型返回内容为空"
+        ],
+        "elapsed_s": 73.457,
+        "usage": {
+          "completion_tokens": 4096,
+          "completion_tokens_details": {
+            "reasoning_tokens": 4095
+          },
+          "prompt_tokens": 767,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "total_tokens": 4863
+        },
+        "assignments": []
+      },
+      {
+        "round": 2,
+        "feasible": true,
+        "revenue": 136,
+        "opt_ratio_pct": 75.98,
+        "errors": [],
+        "elapsed_s": 25.119,
+        "usage": {
+          "completion_tokens": 1846,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1573
+          },
+          "prompt_tokens": 837,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "total_tokens": 2683
+        },
+        "assignments": [
+          {
+            "seat": 1,
+            "start": 1,
+            "end": 2
+          },
+          {
+            "seat": 1,
+            "start": 4,
+            "end": 5
+          },
+          {
+            "seat": 2,
+            "start": 3,
+            "end": 4
+          },
+          {
+            "seat": 3,
+            "start": 2,
+            "end": 3
+          },
+          {
+            "seat": 3,
+            "start": 5,
+            "end": 6
+          },
+          {
+            "seat": 4,
+            "start": 3,
+            "end": 4
+          },
+          {
+            "seat": 4,
+            "start": 5,
+            "end": 6
+          },
+          {
+            "seat": 5,
+            "start": 1,
+            "end": 2
+          }
+        ]
+      },
+      {
+        "round": 3,
+        "feasible": true,
+        "revenue": 177,
+        "opt_ratio_pct": 98.88,
+        "errors": [],
+        "elapsed_s": 56.194,
+        "usage": {
+          "completion_tokens": 3957,
+          "completion_tokens_details": {
+            "reasoning_tokens": 3612
+          },
+          "prompt_tokens": 1367,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "total_tokens": 5324
+        },
+        "assignments": [
+          {
+            "seat": 1,
+            "start": 1,
+            "end": 2
+          },
+          {
+            "seat": 1,
+            "start": 3,
+            "end": 4
+          },
+          {
+            "seat": 2,
+            "start": 2,
+            "end": 3
+          },
+          {
+            "seat": 2,
+            "start": 4,
+            "end": 5
+          },
+          {
+            "seat": 3,
+            "start": 1,
+            "end": 2
+          },
+          {
+            "seat": 3,
+            "start": 5,
+            "end": 6
+          },
+          {
+            "seat": 4,
+            "start": 3,
+            "end": 4
+          },
+          {
+            "seat": 4,
+            "start": 5,
+            "end": 6
+          },
+          {
+            "seat": 5,
+            "start": 1,
+            "end": 6
+          }
+        ]
+      },
+      {
+        "round": 4,
+        "feasible": true,
+        "revenue": 177,
+        "opt_ratio_pct": 98.88,
+        "errors": [],
+        "elapsed_s": 24.422,
+        "usage": {
+          "completion_tokens": 1460,
+          "completion_tokens_details": {
+            "reasoning_tokens": 1153
+          },
+          "prompt_tokens": 1932,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "total_tokens": 3392
+        },
+        "assignments": [
+          {
+            "seat": 1,
+            "start": 1,
+            "end": 2
+          },
+          {
+            "seat": 1,
+            "start": 3,
+            "end": 4
+          },
+          {
+            "seat": 2,
+            "start": 2,
+            "end": 3
+          },
+          {
+            "seat": 2,
+            "start": 4,
+            "end": 5
+          },
+          {
+            "seat": 3,
+            "start": 1,
+            "end": 2
+          },
+          {
+            "seat": 3,
+            "start": 5,
+            "end": 6
+          },
+          {
+            "seat": 4,
+            "start": 3,
+            "end": 4
+          },
+          {
+            "seat": 4,
+            "start": 5,
+            "end": 6
+          },
+          {
+            "seat": 5,
+            "start": 1,
+            "end": 6
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "instance": "S3_较大规模(8座x6区间)",
+    "N": 8,
+    "M": 6,
+    "total_requests": 24,
+    "exact_optimum": 275,
+    "exact_proven": true,
+    "greedy_by_total_price": 259,
+    "greedy_by_unit_price": 242,
+    "glm_round1_feasible": false,
+    "glm_round1_revenue": 0,
+    "glm_best_revenue": 0,
+    "glm_best_opt_ratio_pct": 0.0,
+    "rounds": [
+      {
+        "round": 1,
+        "feasible": false,
+        "revenue": 0,
+        "opt_ratio_pct": 0.0,
+        "errors": [
+          "JSON 解析失败: 模型返回内容为空"
+        ],
+        "elapsed_s": 71.359,
+        "usage": {
+          "completion_tokens": 4096,
+          "completion_tokens_details": {
+            "reasoning_tokens": 4095
+          },
+          "prompt_tokens": 1030,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "total_tokens": 5126
+        },
+        "assignments": []
+      },
+      {
+        "round": 2,
+        "feasible": false,
+        "revenue": 0,
+        "opt_ratio_pct": 0.0,
+        "errors": [
+          "JSON 解析失败: 模型返回内容为空"
+        ],
+        "elapsed_s": 52.152,
+        "usage": {
+          "completion_tokens": 4096,
+          "completion_tokens_details": {
+            "reasoning_tokens": 4095
+          },
+          "prompt_tokens": 1100,
+          "prompt_tokens_details": {
+            "cached_tokens": 64
+          },
+          "total_tokens": 5196
+        },
+        "assignments": []
+      },
+      {
+        "round": 3,
+        "feasible": false,
+        "revenue": 0,
+        "opt_ratio_pct": 0.0,
+        "errors": [
+          "JSON 解析失败: 模型返回内容为空"
+        ],
+        "elapsed_s": 53.069,
+        "usage": {
+          "completion_tokens": 4096,
+          "completion_tokens_details": {
+            "reasoning_tokens": 4095
+          },
+          "prompt_tokens": 1170,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "total_tokens": 5266
+        },
+        "assignments": []
+      },
+      {
+        "round": 4,
+        "feasible": false,
+        "revenue": 0,
+        "opt_ratio_pct": 0.0,
+        "errors": [
+          "JSON 解析失败: 模型返回内容为空"
+        ],
+        "elapsed_s": 52.303,
+        "usage": {
+          "completion_tokens": 4096,
+          "completion_tokens_details": {
+            "reasoning_tokens": 4095
+          },
+          "prompt_tokens": 1240,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          },
+          "total_tokens": 5336
+        },
+        "assignments": []
+      }
+    ]
+  }
+]

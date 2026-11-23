@@ -1,0 +1,639 @@
+{
+  "config": {
+    "M": 6,
+    "N": 20,
+    "T": 100,
+    "num_paths": 30
+  },
+  "myopic_baseline": {
+    "Case1_平稳到达": {
+      "avg_revenue": 849.9,
+      "avg_ho": 944.87,
+      "avg_ho_ratio_pct": 89.92,
+      "avg_loss_vs_ho": 94.97,
+      "invalid_decisions": 0,
+      "avg_final_fragments": 13.53,
+      "avg_leftover_per_leg": [
+        6.07,
+        0.9,
+        0.2,
+        0.43,
+        1.3,
+        6.83
+      ],
+      "by_trip_length": {
+        "len_1": {
+          "accepted": 17.33,
+          "active_rejected": 0.0,
+          "stockout": 5.53,
+          "accept_rate_pct": 75.8
+        },
+        "len_2": {
+          "accepted": 12.17,
+          "active_rejected": 0.0,
+          "stockout": 8.0,
+          "accept_rate_pct": 60.3
+        },
+        "len_3": {
+          "accepted": 7.17,
+          "active_rejected": 0.0,
+          "stockout": 8.07,
+          "accept_rate_pct": 47.0
+        },
+        "len_4": {
+          "accepted": 4.2,
+          "active_rejected": 0.0,
+          "stockout": 6.87,
+          "accept_rate_pct": 38.0
+        },
+        "len_5": {
+          "accepted": 3.1,
+          "active_rejected": 0.0,
+          "stockout": 4.33,
+          "accept_rate_pct": 41.7
+        },
+        "len_6": {
+          "accepted": 1.47,
+          "active_rejected": 0.0,
+          "stockout": 2.5,
+          "accept_rate_pct": 37.0
+        }
+      }
+    },
+    "Case2_短途先来长途后来": {
+      "avg_revenue": 790.87,
+      "avg_ho": 926.0,
+      "avg_ho_ratio_pct": 85.35,
+      "avg_loss_vs_ho": 135.13,
+      "invalid_decisions": 0,
+      "avg_final_fragments": 18.67,
+      "avg_leftover_per_leg": [
+        8.6,
+        2.53,
+        0.83,
+        0.53,
+        2.6,
+        8.9
+      ],
+      "by_trip_length": {
+        "len_1": {
+          "accepted": 14.9,
+          "active_rejected": 0.0,
+          "stockout": 1.37,
+          "accept_rate_pct": 91.6
+        },
+        "len_2": {
+          "accepted": 13.47,
+          "active_rejected": 0.0,
+          "stockout": 2.27,
+          "accept_rate_pct": 85.6
+        },
+        "len_3": {
+          "accepted": 9.07,
+          "active_rejected": 0.0,
+          "stockout": 5.27,
+          "accept_rate_pct": 63.3
+        },
+        "len_4": {
+          "accepted": 2.93,
+          "active_rejected": 0.0,
+          "stockout": 9.47,
+          "accept_rate_pct": 23.7
+        },
+        "len_5": {
+          "accepted": 1.77,
+          "active_rejected": 0.0,
+          "stockout": 9.43,
+          "accept_rate_pct": 15.8
+        },
+        "len_6": {
+          "accepted": 1.07,
+          "active_rejected": 0.0,
+          "stockout": 8.97,
+          "accept_rate_pct": 10.6
+        }
+      }
+    },
+    "eval_elapsed_ms": 10.61
+  },
+  "rounds": [
+    {
+      "round": 1,
+      "status": "ok",
+      "avg_ratio_pct": 82.21,
+      "eval": {
+        "Case1_平稳到达": {
+          "avg_revenue": 808.83,
+          "avg_ho": 944.87,
+          "avg_ho_ratio_pct": 85.6,
+          "avg_loss_vs_ho": 136.03,
+          "invalid_decisions": 0,
+          "avg_final_fragments": 20.77,
+          "avg_leftover_per_leg": [
+            7.07,
+            2.27,
+            1.13,
+            1.67,
+            2.7,
+            8.3
+          ],
+          "by_trip_length": {
+            "len_1": {
+              "accepted": 21.23,
+              "active_rejected": 0.0,
+              "stockout": 1.63,
+              "accept_rate_pct": 92.9
+            },
+            "len_2": {
+              "accepted": 13.1,
+              "active_rejected": 0.0,
+              "stockout": 7.07,
+              "accept_rate_pct": 65.0
+            },
+            "len_3": {
+              "accepted": 6.63,
+              "active_rejected": 0.0,
+              "stockout": 8.6,
+              "accept_rate_pct": 43.5
+            },
+            "len_4": {
+              "accepted": 3.47,
+              "active_rejected": 0.0,
+              "stockout": 7.6,
+              "accept_rate_pct": 31.3
+            },
+            "len_5": {
+              "accepted": 1.93,
+              "active_rejected": 0.0,
+              "stockout": 5.5,
+              "accept_rate_pct": 26.0
+            },
+            "len_6": {
+              "accepted": 1.0,
+              "active_rejected": 0.0,
+              "stockout": 2.97,
+              "accept_rate_pct": 25.2
+            }
+          }
+        },
+        "Case2_短途先来长途后来": {
+          "avg_revenue": 730.27,
+          "avg_ho": 926.0,
+          "avg_ho_ratio_pct": 78.82,
+          "avg_loss_vs_ho": 195.73,
+          "invalid_decisions": 0,
+          "avg_final_fragments": 24.03,
+          "avg_leftover_per_leg": [
+            9.43,
+            4.1,
+            2.47,
+            2.63,
+            4.43,
+            9.93
+          ],
+          "by_trip_length": {
+            "len_1": {
+              "accepted": 16.1,
+              "active_rejected": 0.0,
+              "stockout": 0.17,
+              "accept_rate_pct": 99.0
+            },
+            "len_2": {
+              "accepted": 14.27,
+              "active_rejected": 0.0,
+              "stockout": 1.47,
+              "accept_rate_pct": 90.7
+            },
+            "len_3": {
+              "accepted": 8.47,
+              "active_rejected": 0.0,
+              "stockout": 5.87,
+              "accept_rate_pct": 59.1
+            },
+            "len_4": {
+              "accepted": 2.0,
+              "active_rejected": 0.0,
+              "stockout": 10.4,
+              "accept_rate_pct": 16.1
+            },
+            "len_5": {
+              "accepted": 1.23,
+              "active_rejected": 0.0,
+              "stockout": 9.97,
+              "accept_rate_pct": 11.0
+            },
+            "len_6": {
+              "accepted": 0.47,
+              "active_rejected": 0.0,
+              "stockout": 9.57,
+              "accept_rate_pct": 4.7
+            }
+          }
+        },
+        "eval_elapsed_ms": 148.29
+      },
+      "elapsed_s": 20.159,
+      "usage": {
+        "completion_tokens": 1180,
+        "completion_tokens_details": {
+          "reasoning_tokens": 499
+        },
+        "prompt_tokens": 792,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 1972
+      },
+      "code_file": "evolved_policy_r1.py"
+    },
+    {
+      "round": 2,
+      "status": "ok",
+      "avg_ratio_pct": 51.19,
+      "eval": {
+        "Case1_平稳到达": {
+          "avg_revenue": 532.7,
+          "avg_ho": 944.87,
+          "avg_ho_ratio_pct": 56.37,
+          "avg_loss_vs_ho": 412.17,
+          "invalid_decisions": 0,
+          "avg_final_fragments": 34.1,
+          "avg_leftover_per_leg": [
+            13.77,
+            10.27,
+            5.87,
+            6.27,
+            10.03,
+            14.4
+          ],
+          "by_trip_length": {
+            "len_1": {
+              "accepted": 22.83,
+              "active_rejected": 0.03,
+              "stockout": 0.0,
+              "accept_rate_pct": 99.9
+            },
+            "len_2": {
+              "accepted": 12.23,
+              "active_rejected": 7.53,
+              "stockout": 0.4,
+              "accept_rate_pct": 60.7
+            },
+            "len_3": {
+              "accepted": 3.77,
+              "active_rejected": 10.23,
+              "stockout": 1.23,
+              "accept_rate_pct": 24.7
+            },
+            "len_4": {
+              "accepted": 0.2,
+              "active_rejected": 7.67,
+              "stockout": 3.2,
+              "accept_rate_pct": 1.8
+            },
+            "len_5": {
+              "accepted": 0.0,
+              "active_rejected": 4.67,
+              "stockout": 2.77,
+              "accept_rate_pct": 0.0
+            },
+            "len_6": {
+              "accepted": 0.0,
+              "active_rejected": 1.8,
+              "stockout": 2.17,
+              "accept_rate_pct": 0.0
+            }
+          }
+        },
+        "Case2_短途先来长途后来": {
+          "avg_revenue": 426.33,
+          "avg_ho": 926.0,
+          "avg_ho_ratio_pct": 46.01,
+          "avg_loss_vs_ho": 499.67,
+          "invalid_decisions": 0,
+          "avg_final_fragments": 31.6,
+          "avg_leftover_per_leg": [
+            15.23,
+            12.17,
+            8.27,
+            8.4,
+            11.63,
+            15.77
+          ],
+          "by_trip_length": {
+            "len_1": {
+              "accepted": 16.0,
+              "active_rejected": 0.27,
+              "stockout": 0.0,
+              "accept_rate_pct": 98.4
+            },
+            "len_2": {
+              "accepted": 9.33,
+              "active_rejected": 6.4,
+              "stockout": 0.0,
+              "accept_rate_pct": 59.3
+            },
+            "len_3": {
+              "accepted": 3.07,
+              "active_rejected": 11.27,
+              "stockout": 0.0,
+              "accept_rate_pct": 21.4
+            },
+            "len_4": {
+              "accepted": 0.63,
+              "active_rejected": 11.1,
+              "stockout": 0.67,
+              "accept_rate_pct": 5.1
+            },
+            "len_5": {
+              "accepted": 0.27,
+              "active_rejected": 8.03,
+              "stockout": 2.9,
+              "accept_rate_pct": 2.4
+            },
+            "len_6": {
+              "accepted": 0.13,
+              "active_rejected": 2.97,
+              "stockout": 6.93,
+              "accept_rate_pct": 1.3
+            }
+          }
+        },
+        "eval_elapsed_ms": 32.3
+      },
+      "elapsed_s": 23.738,
+      "usage": {
+        "completion_tokens": 1476,
+        "completion_tokens_details": {
+          "reasoning_tokens": 687
+        },
+        "prompt_tokens": 2397,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 3873
+      },
+      "code_file": "evolved_policy_r2.py"
+    },
+    {
+      "round": 3,
+      "status": "ok",
+      "avg_ratio_pct": 82.31,
+      "eval": {
+        "Case1_平稳到达": {
+          "avg_revenue": 809.47,
+          "avg_ho": 944.87,
+          "avg_ho_ratio_pct": 85.66,
+          "avg_loss_vs_ho": 135.4,
+          "invalid_decisions": 0,
+          "avg_final_fragments": 20.37,
+          "avg_leftover_per_leg": [
+            7.07,
+            2.23,
+            1.03,
+            1.67,
+            2.8,
+            8.37
+          ],
+          "by_trip_length": {
+            "len_1": {
+              "accepted": 21.23,
+              "active_rejected": 0.0,
+              "stockout": 1.63,
+              "accept_rate_pct": 92.9
+            },
+            "len_2": {
+              "accepted": 13.23,
+              "active_rejected": 0.0,
+              "stockout": 6.93,
+              "accept_rate_pct": 65.6
+            },
+            "len_3": {
+              "accepted": 6.67,
+              "active_rejected": 0.0,
+              "stockout": 8.57,
+              "accept_rate_pct": 43.8
+            },
+            "len_4": {
+              "accepted": 3.53,
+              "active_rejected": 0.0,
+              "stockout": 7.53,
+              "accept_rate_pct": 31.9
+            },
+            "len_5": {
+              "accepted": 2.0,
+              "active_rejected": 0.0,
+              "stockout": 5.43,
+              "accept_rate_pct": 26.9
+            },
+            "len_6": {
+              "accepted": 0.83,
+              "active_rejected": 0.17,
+              "stockout": 2.97,
+              "accept_rate_pct": 21.0
+            }
+          }
+        },
+        "Case2_短途先来长途后来": {
+          "avg_revenue": 731.57,
+          "avg_ho": 926.0,
+          "avg_ho_ratio_pct": 78.95,
+          "avg_loss_vs_ho": 194.43,
+          "invalid_decisions": 0,
+          "avg_final_fragments": 23.4,
+          "avg_leftover_per_leg": [
+            9.4,
+            4.1,
+            2.43,
+            2.6,
+            4.4,
+            9.97
+          ],
+          "by_trip_length": {
+            "len_1": {
+              "accepted": 16.07,
+              "active_rejected": 0.03,
+              "stockout": 0.17,
+              "accept_rate_pct": 98.8
+            },
+            "len_2": {
+              "accepted": 14.47,
+              "active_rejected": 0.0,
+              "stockout": 1.27,
+              "accept_rate_pct": 91.9
+            },
+            "len_3": {
+              "accepted": 8.53,
+              "active_rejected": 0.0,
+              "stockout": 5.8,
+              "accept_rate_pct": 59.5
+            },
+            "len_4": {
+              "accepted": 1.93,
+              "active_rejected": 0.0,
+              "stockout": 10.47,
+              "accept_rate_pct": 15.6
+            },
+            "len_5": {
+              "accepted": 1.23,
+              "active_rejected": 0.0,
+              "stockout": 9.97,
+              "accept_rate_pct": 11.0
+            },
+            "len_6": {
+              "accepted": 0.43,
+              "active_rejected": 0.03,
+              "stockout": 9.57,
+              "accept_rate_pct": 4.3
+            }
+          }
+        },
+        "eval_elapsed_ms": 33.85
+      },
+      "elapsed_s": 12.522,
+      "usage": {
+        "completion_tokens": 965,
+        "completion_tokens_details": {
+          "reasoning_tokens": 155
+        },
+        "prompt_tokens": 4110,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 5075
+      },
+      "code_file": "evolved_policy_r3.py"
+    },
+    {
+      "round": 4,
+      "status": "ok",
+      "avg_ratio_pct": 83.19,
+      "eval": {
+        "Case1_平稳到达": {
+          "avg_revenue": 815.47,
+          "avg_ho": 944.87,
+          "avg_ho_ratio_pct": 86.29,
+          "avg_loss_vs_ho": 129.4,
+          "invalid_decisions": 0,
+          "avg_final_fragments": 19.37,
+          "avg_leftover_per_leg": [
+            7.0,
+            2.1,
+            0.93,
+            1.43,
+            2.67,
+            8.07
+          ],
+          "by_trip_length": {
+            "len_1": {
+              "accepted": 21.1,
+              "active_rejected": 0.0,
+              "stockout": 1.77,
+              "accept_rate_pct": 92.3
+            },
+            "len_2": {
+              "accepted": 13.13,
+              "active_rejected": 0.0,
+              "stockout": 7.03,
+              "accept_rate_pct": 65.1
+            },
+            "len_3": {
+              "accepted": 6.67,
+              "active_rejected": 0.0,
+              "stockout": 8.57,
+              "accept_rate_pct": 43.8
+            },
+            "len_4": {
+              "accepted": 3.57,
+              "active_rejected": 0.0,
+              "stockout": 7.5,
+              "accept_rate_pct": 32.2
+            },
+            "len_5": {
+              "accepted": 2.03,
+              "active_rejected": 0.0,
+              "stockout": 5.4,
+              "accept_rate_pct": 27.4
+            },
+            "len_6": {
+              "accepted": 1.0,
+              "active_rejected": 0.0,
+              "stockout": 2.97,
+              "accept_rate_pct": 25.2
+            }
+          }
+        },
+        "Case2_短途先来长途后来": {
+          "avg_revenue": 742.0,
+          "avg_ho": 926.0,
+          "avg_ho_ratio_pct": 80.09,
+          "avg_loss_vs_ho": 184.0,
+          "invalid_decisions": 0,
+          "avg_final_fragments": 22.33,
+          "avg_leftover_per_leg": [
+            9.23,
+            3.93,
+            2.0,
+            2.27,
+            4.2,
+            9.87
+          ],
+          "by_trip_length": {
+            "len_1": {
+              "accepted": 16.1,
+              "active_rejected": 0.03,
+              "stockout": 0.13,
+              "accept_rate_pct": 99.0
+            },
+            "len_2": {
+              "accepted": 14.5,
+              "active_rejected": 0.0,
+              "stockout": 1.23,
+              "accept_rate_pct": 92.2
+            },
+            "len_3": {
+              "accepted": 8.6,
+              "active_rejected": 0.0,
+              "stockout": 5.73,
+              "accept_rate_pct": 60.0
+            },
+            "len_4": {
+              "accepted": 2.07,
+              "active_rejected": 0.0,
+              "stockout": 10.33,
+              "accept_rate_pct": 16.7
+            },
+            "len_5": {
+              "accepted": 1.27,
+              "active_rejected": 0.0,
+              "stockout": 9.93,
+              "accept_rate_pct": 11.3
+            },
+            "len_6": {
+              "accepted": 0.5,
+              "active_rejected": 0.0,
+              "stockout": 9.53,
+              "accept_rate_pct": 5.0
+            }
+          }
+        },
+        "eval_elapsed_ms": 61.74
+      },
+      "elapsed_s": 27.825,
+      "usage": {
+        "completion_tokens": 1752,
+        "completion_tokens_details": {
+          "reasoning_tokens": 448
+        },
+        "prompt_tokens": 5844,
+        "prompt_tokens_details": {
+          "cached_tokens": 4096
+        },
+        "total_tokens": 7596
+      },
+      "code_file": "evolved_policy_r4.py"
+    }
+  ],
+  "best_round": 4,
+  "best_avg_ratio_pct": 83.19
+}
