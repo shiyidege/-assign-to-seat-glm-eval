@@ -123,6 +123,8 @@ flowchart LR
 
 基础设定：`M=6, N=20, T=100`，5 并发共 20 代 = 100 次评估，总耗时 **925.7 秒（15.4 分钟）**，有效代码 **90 / 100**，总消耗 `631,631` tokens。
 
+![无求解器 AI 种群进化曲线：循环次数 vs 最终求解结果](figures/pop100_evolution_curve.png)
+
 | 进化里程碑 | 算子 / 编号 | 训练集 40 路径（C1 / C2 / 均分） | **留出集 60 路径（C1 / C2 / 均分）** | 相对 Myopic 提升（留出集） |
 | :--- | :--- | :--- | :--- | ---: |
 | 基线 | `Myopic (MP)` | 89.52% / 84.88% / 87.20% | 90.54% / 85.92% / **88.23%** | — |
@@ -191,6 +193,8 @@ flowchart LR
 | 20 轮总耗时 / 单次均延迟 | 357.2 s（38.3 s/次） | **197.8 s（24.9 s/次）** |
 | 20 轮总 Token 消耗 | 69,714 | 74,127 |
 
+![同起跑线 20 轮从零进化曲线：glm-5.3 vs glm-5.3-flash](figures/model_compare_20rounds.png)
+
 ---
 
 ## 五、代码清单与复现指南
@@ -208,6 +212,8 @@ flowchart LR
 | `best_pop100_policy.py` | 100 轮进化产出的最佳零求解器纯 Python 策略（`E097`） |
 | `compare_vs_paper_methods.py` | 实验 4：使用 SciPy HiGHS 精确复现 `BPC-S`/`BPC-M`/`RDP` 并与 `E097` 正面对决 |
 | `compare_glm_models.py` | 实验 5：`glm-5.3` vs `glm-5.3-flash` 同起跑线对照实验 |
+| `plot_evolution_charts.py` | 从实验日志一键生成循环次数 vs 收益达成率高清折线图（输出至 `figures/`） |
+| `figures/*.png` | 100 轮种群进化曲线与 20 轮同系列模型对比折线图 |
 | `results/*.json` & `pop_100_log.jsonl` | 全部实验原始数值、每轮轨迹与代码存档 |
 
 ### 快速复现命令
@@ -222,6 +228,9 @@ python3 compare_vs_paper_methods.py
 
 # 3. 同系列模型对比（glm-5.3 vs glm-5.3-flash）
 python3 compare_glm_models.py
+
+# 4. 重新生成折线统计图（零 API 成本）
+python3 plot_evolution_charts.py
 ```
 
 ---
