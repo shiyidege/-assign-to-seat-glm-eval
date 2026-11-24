@@ -1,0 +1,252 @@
+{
+  "solver_smoke": {
+    "available": {
+      "scip": true,
+      "cbc": true,
+      "glop": true,
+      "clp": true,
+      "highs": true,
+      "ortools": true,
+      "scipy_highs": true
+    },
+    "runs": {
+      "scip": {
+        "ok": true,
+        "x": [
+          1.0,
+          -0.0
+        ],
+        "obj": -1.0,
+        "status": "optimal",
+        "solver": "scip",
+        "message": "ok"
+      },
+      "cbc": {
+        "ok": true,
+        "x": [
+          1.0,
+          0.0
+        ],
+        "obj": -1.0,
+        "status": "optimal",
+        "solver": "cbc",
+        "message": "ok"
+      },
+      "glop": {
+        "ok": true,
+        "x": [
+          0.0,
+          1.0
+        ],
+        "obj": -1.0,
+        "status": "optimal",
+        "solver": "glop",
+        "message": "ok"
+      },
+      "clp": {
+        "ok": true,
+        "x": [
+          1.0,
+          0.0
+        ],
+        "obj": -1.0,
+        "status": "optimal",
+        "solver": "clp",
+        "message": "ok"
+      },
+      "highs": {
+        "ok": true,
+        "x": [
+          1.0,
+          0.0
+        ],
+        "obj": -1.0,
+        "status": "optimal",
+        "solver": "highs",
+        "message": "ok"
+      }
+    }
+  },
+  "preferred_lp_solver": "scip",
+  "heldout": {
+    "MP (Myopic)": {
+      "Case1": {
+        "label": "Case1",
+        "avg_rev": 844.37,
+        "ratio_pct": 90.54,
+        "gap_pct": 9.46,
+        "elapsed_ms": 4.3
+      },
+      "Case2": {
+        "label": "Case2",
+        "avg_rev": 792.67,
+        "ratio_pct": 85.92,
+        "gap_pct": 14.08,
+        "elapsed_ms": 4.4
+      },
+      "mean": 88.23
+    },
+    "GLM-5 E097 (纯AI无求解器)": {
+      "Case1": {
+        "label": "Case1",
+        "avg_rev": 884.43,
+        "ratio_pct": 94.88,
+        "gap_pct": 5.12,
+        "elapsed_ms": 296.8
+      },
+      "Case2": {
+        "label": "Case2",
+        "avg_rev": 863.07,
+        "ratio_pct": 93.57,
+        "gap_pct": 6.43,
+        "elapsed_ms": 307.6
+      },
+      "mean": 94.22
+    },
+    "BPC-M via toolkit(scip)": {
+      "Case1": {
+        "label": "Case1",
+        "avg_rev": 891.87,
+        "ratio_pct": 95.67,
+        "gap_pct": 4.33,
+        "elapsed_ms": 6828.0
+      },
+      "Case2": {
+        "label": "Case2",
+        "avg_rev": 876.43,
+        "ratio_pct": 95.01,
+        "gap_pct": 4.99,
+        "elapsed_ms": 7424.7
+      },
+      "mean": 95.34
+    },
+    "BPC-M via toolkit(glop)": {
+      "Case1": {
+        "label": "Case1",
+        "avg_rev": 893.27,
+        "ratio_pct": 95.82,
+        "gap_pct": 4.18,
+        "elapsed_ms": 1410.5
+      },
+      "Case2": {
+        "label": "Case2",
+        "avg_rev": 876.7,
+        "ratio_pct": 95.04,
+        "gap_pct": 4.96,
+        "elapsed_ms": 1841.5
+      },
+      "mean": 95.43
+    },
+    "BPC-M via toolkit(cbc)": {
+      "Case1": {
+        "label": "Case1",
+        "avg_rev": 891.57,
+        "ratio_pct": 95.63,
+        "gap_pct": 4.37,
+        "elapsed_ms": 2653.0
+      },
+      "Case2": {
+        "label": "Case2",
+        "avg_rev": 875.6,
+        "ratio_pct": 94.92,
+        "gap_pct": 5.08,
+        "elapsed_ms": 2813.5
+      },
+      "mean": 95.28
+    }
+  },
+  "evolution": [
+    {
+      "round": 1,
+      "prefer_solver_hint": true,
+      "status": "ok",
+      "used_toolkit": true,
+      "tokens": {
+        "completion_tokens": 2720,
+        "completion_tokens_details": {
+          "reasoning_tokens": 1266
+        },
+        "prompt_tokens": 1632,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 4352
+      },
+      "api_s": 73.447,
+      "model_returned": "glm-5.3",
+      "train_mean": 30.21,
+      "heldout": {
+        "Case1": {
+          "label": "Case1",
+          "avg_rev": 176.3,
+          "ratio_pct": 18.91,
+          "gap_pct": 81.09,
+          "elapsed_ms": 4243.7
+        },
+        "Case2": {
+          "label": "Case2",
+          "avg_rev": 429.13,
+          "ratio_pct": 46.57,
+          "gap_pct": 53.43,
+          "elapsed_ms": 4310.7
+        }
+      },
+      "heldout_mean": 32.74,
+      "code": "#!/usr/bin/env python3\n\"\"\"\n进化版：BPC-M 对偶 LP（纯标准库 + solver_toolkit，无 scipy/pulp）。\n- 每步解一个小型对偶 LP 得到各区块 bid price beta_uv；\n- 用 beta 做接受/分配决策（gain = p + b_left + b_right - b_uv >= 0 接受）；\n- 多后端依次回退（preferred -> highs -> glop -> cbc -> scip），全部失败回退贪心；\n- 矩阵按 (M, prices) 缓存，保证毫秒级单步耗时。\n\"\"\"\n\nfrom __future__ import annotations\n\nfrom typing import Dict, List, Optional, Tuple\n\nfrom solver_toolkit import preferred_lp_solver, solve_lp\n\n\nclass _BPCMCache:\n    def __init__(self):\n        self.M = None\n        self.prices = None\n        self.pairs = None\n        self.pair_idx = None\n        self.A_ub = None  # list of rows (list of [col, val])\n        self.b_base = None\n\n\n_CACHE = _BPCMCache()\n_SOLVER_ORDER = [\"highs\", \"glop\", \"cbc\", \"scip\", \"clp\"]\n\n\ndef _ensure(M: int, prices: Dict[Tuple[int, int], int]):\n    if _CACHE.M == M and _CACHE.prices == prices:\n        return\n    pairs = [(u, v) for u in range(1, M + 1) for v in range(u, M + 1)]\n    pair_idx = {p: i for i, p in enumerate(pairs)}\n    P = len(pairs)\n    rows = []  # each row: list of [col, val]\n    b_ub = []\n    for u in range(1, M + 1):\n        for i in range(u, M + 1):\n            for j in range(i, M + 1):\n                for v in range(j, M + 1):\n                    row = []\n                    # -beta_(i,j)\n                    row.append([pair_idx[(i, j)], -1.0])\n                    # -beta_(u,v)\n                    row.append([P + pair_idx[(u, v)], -1.0])\n                    # +beta_(u,i-1)\n                    if u < i:\n                        row.append([P + pair_idx[(u, i - 1)], 1.0])\n                    # +beta_(j+1,v)\n                    if j < v:\n                        row.append([P + pair_idx[(j + 1, v)], 1.0])\n                    rows.append(row)\n                    b_ub.append(-float(prices[(i, j)]))\n    _CACHE.M = M\n    _CACHE.prices = dict(prices)\n    _CACHE.pairs = pairs\n    _CACHE.pair_idx = pair_idx\n    _CACHE.A_ub = rows\n    _CACHE.b_base = b_ub\n\n\ndef _try_solve(c, solvers):\n    last = None\n    for s in solvers:\n        try:\n            res = solve_lp(\n                c,\n                A_ub=_CACHE.A_ub,\n                b_ub=_CACHE.b_base,\n                bounds=[(0.0, None)] * (2 * len(_CACHE.pairs)),\n                solver=s,\n                time_limit_s=0.4,\n            )\n        except Exception:\n            continue\n        if res is not None and res.get(\"ok\") and res.get(\"x\") is not None:\n            return res\n        last = res\n    return last\n\n\ndef decide(t, T, M, counts, req_i, req_j, prices, remaining_expected):\n    \"\"\"BPC-M 对偶 LP 决策；LP 全部失败时回退贪心规则。\"\"\"\n    # 可行 maximal intervals：按块长升序（最小侵入），同长左贴合优先\n    cands = []\n    for (u, v), cnt in counts.items():\n        if cnt > 0 and u <= req_i and req_j <= v:\n            cands.append((u, v))\n    if not cands:\n        return None\n    cands.sort(key=lambda uv: (uv[1] - uv[0], uv[0], -uv[1]))\n\n    _ensure(M, prices)\n    pairs = _CACHE.pairs\n    pair_idx = _CACHE.pair_idx\n    P = len(pairs)\n\n    c = [0.0] * (2 * P)\n    for k, ij in enumerate(pairs):\n        c[k] = float(remaining_expected.get(ij, 0.0))\n        c[P + k] = float(counts.get(ij, 0))\n\n    pref = None\n    try:\n        pref = preferred_lp_solver()\n    except Exception:\n        pref = None\n    order = ([pref] if pref else []) + [s for s in _SOLVER_ORDER if s != pref]\n    res = _try_solve(c, order)\n\n    # 回退：无 LP 时用轻量启发式 —— 若请求恰为某持有块则接受该块，\n    # 否则接受最小侵入块但要求票价不低于该块均价（粗护留）。\n    if res is None:\n        for uv in cands:\n            if uv == (req_i, req_j):\n                return uv\n        best = cands[0]\n        avg = prices[(req_i, req_j)] / max(1, (req_j - req_i + 1))\n        if prices[(req_i, req_j)] >= avg * (best[1] - best[0] + 1):\n            return best\n        return None\n\n    x = res[\"x\"]\n    beta = x[P:]\n    p_val = float(prices[(req_i, req_j)])\n\n    best_gain = -1e18\n    best_uv = None\n    for (u, v) in cands:\n        b_uv = beta[pair_idx[(u, v)]]\n        b_left = beta[pair_idx[(u, req_i - 1)]] if u < req_i else 0.0\n        b_right = beta[pair_idx[(req_j + 1, v)]] if req_j < v else 0.0\n        gain = p_val + b_left + b_right - b_uv\n        # 轻微偏好精确块与更短块（同 gain 下的确定性 tie-break）\n        if gain > best_gain + 1e-7 or (\n            abs(gain - best_gain) <= 1e-7 and best_uv is not None\n            and (v - u) < (best_uv[1] - best_uv[0])\n        ):\n            best_gain = gain\n            best_uv = (u, v)\n\n    if best_uv is not None and best_gain >= -1e-7:\n        return best_uv\n    return None"
+    },
+    {
+      "round": 2,
+      "prefer_solver_hint": false,
+      "status": "error",
+      "error": "模型返回内容为空"
+    },
+    {
+      "round": 3,
+      "prefer_solver_hint": true,
+      "status": "ok",
+      "used_toolkit": true,
+      "tokens": {
+        "completion_tokens": 2062,
+        "completion_tokens_details": {
+          "reasoning_tokens": 226
+        },
+        "prompt_tokens": 1632,
+        "prompt_tokens_details": {
+          "cached_tokens": 0
+        },
+        "total_tokens": 3694
+      },
+      "api_s": 47.907,
+      "model_returned": "glm-5.3",
+      "train_mean": 87.97,
+      "heldout": {
+        "Case1": {
+          "label": "Case1",
+          "avg_rev": 845.6,
+          "ratio_pct": 90.67,
+          "gap_pct": 9.33,
+          "elapsed_ms": 1352.7
+        },
+        "Case2": {
+          "label": "Case2",
+          "avg_rev": 794.27,
+          "ratio_pct": 86.09,
+          "gap_pct": 13.91,
+          "elapsed_ms": 1202.6
+        }
+      },
+      "heldout_mean": 88.38,
+      "code": "#!/usr/bin/env python3\n\"\"\"\n第 3 轮进化：BPC-M 对偶 LP（solver_toolkit, 纯标准库表示约束矩阵），带失败回退。\n相对参考版的改进：\n  1) 不再依赖 numpy/scipy——约束矩阵用纯 list 表示，规避硬规则限制，同时更轻量；\n  2) 默认后端按 LP 特性选 'glop'/'highs'（纯 LP 极快），scip 作为备选；\n  3) 求解失败 / 超时时退化为带收益密度的护留启发式（短途先来 Case2 更稳）；\n  4) 对偶向量 beta 缓存失效检查更稳健。\n\"\"\"\n\nfrom __future__ import annotations\n\nfrom typing import Dict, List, Optional, Tuple\n\nfrom solver_toolkit import solve_lp\n\n\nclass _Cache:\n    def __init__(self):\n        self.M: Optional[int] = None\n        self.prices_id: Optional[int] = None\n        self.pairs: List[Tuple[int, int]] = []\n        self.pair_idx: Dict[Tuple[int, int], int] = {}\n        self.P = 0\n        self.A_rows: List[List[float]] = []   # dense rows: len = 2P\n        self.b_ub: List[float] = []\n        self.bounds = [(0.0, None)] * 0\n        self.last_beta: Optional[List[float]] = None\n\n\n_CACHE = _Cache()\n_try_seq = (\"glop\", \"highs\", \"scip\", \"cbc\")\n\n\ndef _build(M: int, prices: Dict[Tuple[int, int], int]) -> None:\n    if _CACHE.M == M and _CACHE.prices_id == id(prices):\n        return\n    pairs = [(u, v) for u in range(1, M + 1) for v in range(u, M + 1)]\n    pair_idx = {p: k for k, p in enumerate(pairs)}\n    P = len(pairs)\n\n    rows: List[List[float]] = []\n    b_ub: List[float] = []\n    for u in range(1, M + 1):\n        for i in range(u, M + 1):\n            for j in range(i, M + 1):\n                for v in range(j, M + 1):\n                    row = [0.0] * (2 * P)\n                    row[pair_idx[(i, j)]] = -1.0\n                    row[P + pair_idx[(u, v)]] = -1.0\n                    if u < i:\n                        row[P + pair_idx[(u, i - 1)]] = 1.0\n                    if j < v:\n                        row[P + pair_idx[(j + 1, v)]] = 1.0\n                    rows.append(row)\n                    b_ub.append(-float(prices[(i, j)]))\n\n    _CACHE.M = M\n    _CACHE.prices_id = id(prices)\n    _CACHE.pairs = pairs\n    _CACHE.pair_idx = pair_idx\n    _CACHE.P = P\n    _CACHE.A_rows = rows\n    _CACHE.b_ub = b_ub\n    _CACHE.bounds = [(0.0, None)] * (2 * P)\n    _CACHE.last_beta = None\n\n\ndef _heuristic(counts, req_i, req_j, prices, remaining_expected):\n    \"\"\"回退：在可行 maximal intervals 中选 (单价密度, 长度) 最优者。\"\"\"\n    cands = [\n        (u, v)\n        for (u, v), cnt in counts.items()\n        if cnt > 0 and u <= req_i and req_j <= v\n    ]\n    if not cands:\n        return None\n    req_p = float(prices[(req_i, req_j)])\n    req_len = req_j - req_i + 1\n    best, best_key = None, None\n    for (u, v) in cands:\n        length = v - u + 1\n        # 该块剩余期望需求的粗略价值\n        rem_val = sum(\n            remaining_expected.get((a, b), 0.0) * prices.get((a, b), 0)\n            for a in range(u, v + 1)\n            for b in range(a, v + 1)\n        )\n        # 拆出请求后仍保留的价值（左右剩余段）\n        left_val = (\n            sum(\n                remaining_expected.get((a, b), 0.0) * prices.get((a, b), 0)\n                for a in range(u, req_i)\n                for b in range(a, req_i)\n            ) if u < req_i else 0.0\n        )\n        right_val = (\n            sum(\n                remaining_expected.get((a, b), 0.0) * prices.get((a, b), 0)\n                for a in range(req_j + 1, v + 1)\n                for b in range(a, v + 1)\n            ) if req_j < v else 0.0\n        )\n        # 单位长度护留损失近似\n        key = (req_p + left_val + right_val - 0.5 * rem_val / max(length, 1)) / req_len\n        # 短途请求优先保短块（Case2 保护）\n        key += 0.1 * (length - req_len) / req_len\n        if best_key is None or key > best_key:\n            best_key, best = key, (u, v)\n    return best\n\n\ndef decide(t, T, M, counts, req_i, req_j, prices, remaining_expected):\n    _build(M, prices)\n    pairs = _CACHE.pairs\n    pair_idx = _CACHE.pair_idx\n    P = _CACHE.P\n\n    cands = [\n        (u, v)\n        for (u, v), cnt in counts.items()\n        if cnt > 0 and u <= req_i and req_j <= v\n    ]\n    if not cands:\n        return None\n    cands.sort(key=lambda uv: (uv[1] - uv[0], uv[0], -uv[1]))\n\n    # 目标：min sum r_ij * x_ij + sum n_uv * beta_uv\n    c = [0.0] * (2 * P)\n    for k, ij in enumerate(pairs):\n        c[k] = float(remaining_expected.get(ij, 0.0))\n        c[P + k] = float(counts.get(ij, 0))\n\n    beta: Optional[List[float]] = None\n    for backend in _try_seq:\n        try:\n            res = solve_lp(\n                c,\n                A_ub=_CACHE.A_rows,\n                b_ub=_CACHE.b_ub,\n                bounds=_CACHE.bounds,\n                solver=backend,\n                time_limit_s=0.4,\n            )\n        except Exception:\n            res = {\"ok\": False}\n        if res.get(\"ok\") and res.get(\"x\") is not None:\n            x = res[\"x\"]\n            if len(x) >= 2 * P:\n                beta = [float(x[P + k]) for k in range(P)]\n                break\n\n    if beta is None:\n        # LP 失败回退：先试缓存对偶，再用启发式\n        if _CACHE.last_beta is not None:\n            beta = _CACHE.last_beta\n        else:\n            return _heuristic(counts, req_i, req_j, prices, remaining_expected)\n    _CACHE.last_beta = beta\n\n    p_val = float(prices[(req_i, req_j)])\n    best_gain = -1e18\n    best_uv = None\n    for (u, v) in cands:\n        b_uv = beta[pair_idx[(u, v)]]\n        b_left = beta[pair_idx[(u, req_i - 1)]] if u < req_i else 0.0\n        b_right = beta[pair_idx[(req_j + 1, v)]] if req_j < v else 0.0\n        gain = p_val + b_left + b_right - b_uv\n        if gain > best_gain + 1e-7:\n            best_gain = gain\n            best_uv = (u, v)\n\n    if best_uv is not None and best_gain >= -1e-7:\n        return best_uv\n    # 全部为负增益时：小概率护留（拒单），否则取启发式块\n    return _heuristic(counts, req_i, req_j, prices, remaining_expected)"
+    },
+    {
+      "round": 4,
+      "prefer_solver_hint": false,
+      "status": "error",
+      "error": "模型返回内容为空"
+    }
+  ],
+  "last_ok_code": "#!/usr/bin/env python3\n\"\"\"\n第 3 轮进化：BPC-M 对偶 LP（solver_toolkit, 纯标准库表示约束矩阵），带失败回退。\n相对参考版的改进：\n  1) 不再依赖 numpy/scipy——约束矩阵用纯 list 表示，规避硬规则限制，同时更轻量；\n  2) 默认后端按 LP 特性选 'glop'/'highs'（纯 LP 极快），scip 作为备选；\n  3) 求解失败 / 超时时退化为带收益密度的护留启发式（短途先来 Case2 更稳）；\n  4) 对偶向量 beta 缓存失效检查更稳健。\n\"\"\"\n\nfrom __future__ import annotations\n\nfrom typing import Dict, List, Optional, Tuple\n\nfrom solver_toolkit import solve_lp\n\n\nclass _Cache:\n    def __init__(self):\n        self.M: Optional[int] = None\n        self.prices_id: Optional[int] = None\n        self.pairs: List[Tuple[int, int]] = []\n        self.pair_idx: Dict[Tuple[int, int], int] = {}\n        self.P = 0\n        self.A_rows: List[List[float]] = []   # dense rows: len = 2P\n        self.b_ub: List[float] = []\n        self.bounds = [(0.0, None)] * 0\n        self.last_beta: Optional[List[float]] = None\n\n\n_CACHE = _Cache()\n_try_seq = (\"glop\", \"highs\", \"scip\", \"cbc\")\n\n\ndef _build(M: int, prices: Dict[Tuple[int, int], int]) -> None:\n    if _CACHE.M == M and _CACHE.prices_id == id(prices):\n        return\n    pairs = [(u, v) for u in range(1, M + 1) for v in range(u, M + 1)]\n    pair_idx = {p: k for k, p in enumerate(pairs)}\n    P = len(pairs)\n\n    rows: List[List[float]] = []\n    b_ub: List[float] = []\n    for u in range(1, M + 1):\n        for i in range(u, M + 1):\n            for j in range(i, M + 1):\n                for v in range(j, M + 1):\n                    row = [0.0] * (2 * P)\n                    row[pair_idx[(i, j)]] = -1.0\n                    row[P + pair_idx[(u, v)]] = -1.0\n                    if u < i:\n                        row[P + pair_idx[(u, i - 1)]] = 1.0\n                    if j < v:\n                        row[P + pair_idx[(j + 1, v)]] = 1.0\n                    rows.append(row)\n                    b_ub.append(-float(prices[(i, j)]))\n\n    _CACHE.M = M\n    _CACHE.prices_id = id(prices)\n    _CACHE.pairs = pairs\n    _CACHE.pair_idx = pair_idx\n    _CACHE.P = P\n    _CACHE.A_rows = rows\n    _CACHE.b_ub = b_ub\n    _CACHE.bounds = [(0.0, None)] * (2 * P)\n    _CACHE.last_beta = None\n\n\ndef _heuristic(counts, req_i, req_j, prices, remaining_expected):\n    \"\"\"回退：在可行 maximal intervals 中选 (单价密度, 长度) 最优者。\"\"\"\n    cands = [\n        (u, v)\n        for (u, v), cnt in counts.items()\n        if cnt > 0 and u <= req_i and req_j <= v\n    ]\n    if not cands:\n        return None\n    req_p = float(prices[(req_i, req_j)])\n    req_len = req_j - req_i + 1\n    best, best_key = None, None\n    for (u, v) in cands:\n        length = v - u + 1\n        # 该块剩余期望需求的粗略价值\n        rem_val = sum(\n            remaining_expected.get((a, b), 0.0) * prices.get((a, b), 0)\n            for a in range(u, v + 1)\n            for b in range(a, v + 1)\n        )\n        # 拆出请求后仍保留的价值（左右剩余段）\n        left_val = (\n            sum(\n                remaining_expected.get((a, b), 0.0) * prices.get((a, b), 0)\n                for a in range(u, req_i)\n                for b in range(a, req_i)\n            ) if u < req_i else 0.0\n        )\n        right_val = (\n            sum(\n                remaining_expected.get((a, b), 0.0) * prices.get((a, b), 0)\n                for a in range(req_j + 1, v + 1)\n                for b in range(a, v + 1)\n            ) if req_j < v else 0.0\n        )\n        # 单位长度护留损失近似\n        key = (req_p + left_val + right_val - 0.5 * rem_val / max(length, 1)) / req_len\n        # 短途请求优先保短块（Case2 保护）\n        key += 0.1 * (length - req_len) / req_len\n        if best_key is None or key > best_key:\n            best_key, best = key, (u, v)\n    return best\n\n\ndef decide(t, T, M, counts, req_i, req_j, prices, remaining_expected):\n    _build(M, prices)\n    pairs = _CACHE.pairs\n    pair_idx = _CACHE.pair_idx\n    P = _CACHE.P\n\n    cands = [\n        (u, v)\n        for (u, v), cnt in counts.items()\n        if cnt > 0 and u <= req_i and req_j <= v\n    ]\n    if not cands:\n        return None\n    cands.sort(key=lambda uv: (uv[1] - uv[0], uv[0], -uv[1]))\n\n    # 目标：min sum r_ij * x_ij + sum n_uv * beta_uv\n    c = [0.0] * (2 * P)\n    for k, ij in enumerate(pairs):\n        c[k] = float(remaining_expected.get(ij, 0.0))\n        c[P + k] = float(counts.get(ij, 0))\n\n    beta: Optional[List[float]] = None\n    for backend in _try_seq:\n        try:\n            res = solve_lp(\n                c,\n                A_ub=_CACHE.A_rows,\n                b_ub=_CACHE.b_ub,\n                bounds=_CACHE.bounds,\n                solver=backend,\n                time_limit_s=0.4,\n            )\n        except Exception:\n            res = {\"ok\": False}\n        if res.get(\"ok\") and res.get(\"x\") is not None:\n            x = res[\"x\"]\n            if len(x) >= 2 * P:\n                beta = [float(x[P + k]) for k in range(P)]\n                break\n\n    if beta is None:\n        # LP 失败回退：先试缓存对偶，再用启发式\n        if _CACHE.last_beta is not None:\n            beta = _CACHE.last_beta\n        else:\n            return _heuristic(counts, req_i, req_j, prices, remaining_expected)\n    _CACHE.last_beta = beta\n\n    p_val = float(prices[(req_i, req_j)])\n    best_gain = -1e18\n    best_uv = None\n    for (u, v) in cands:\n        b_uv = beta[pair_idx[(u, v)]]\n        b_left = beta[pair_idx[(u, req_i - 1)]] if u < req_i else 0.0\n        b_right = beta[pair_idx[(req_j + 1, v)]] if req_j < v else 0.0\n        gain = p_val + b_left + b_right - b_uv\n        if gain > best_gain + 1e-7:\n            best_gain = gain\n            best_uv = (u, v)\n\n    if best_uv is not None and best_gain >= -1e-7:\n        return best_uv\n    # 全部为负增益时：小概率护留（拒单），否则取启发式块\n    return _heuristic(counts, req_i, req_j, prices, remaining_expected)",
+  "best_heldout_mean": 95.34,
+  "best_used_toolkit": true,
+  "best_code": "#!/usr/bin/env python3\n\"\"\"\n种子策略：通过可选组件 solver_toolkit 调用开源求解器，复现论文 BPC-M（Eq.12）。\nAI 进化时也可参考/改造本文件；decide 单步会解一次小 LP。\n\"\"\"\n\nfrom __future__ import annotations\n\nfrom typing import Dict, List, Optional, Tuple\n\nimport numpy as np\nfrom scipy.sparse import csc_matrix\n\nfrom solver_toolkit import preferred_lp_solver, solve_lp\n\n\nclass _BPCMCache:\n    def __init__(self):\n        self.M = None\n        self.pairs = None\n        self.pair_idx = None\n        self.A_ub = None\n        self.b_base = None  # will rebuild with prices\n        self.prices = None\n\n\n_CACHE = _BPCMCache()\n\n\ndef _ensure(M: int, prices: Dict[Tuple[int, int], int]):\n    if _CACHE.M == M and _CACHE.prices is prices:\n        return\n    pairs = [(u, v) for u in range(1, M + 1) for v in range(u, M + 1)]\n    pair_idx = {p: i for i, p in enumerate(pairs)}\n    P = len(pairs)\n    quads = [\n        (u, i, j, v)\n        for u in range(1, M + 1)\n        for i in range(u, M + 1)\n        for j in range(i, M + 1)\n        for v in range(j, M + 1)\n    ]\n    rows, cols, vals, b_ub = [], [], [], []\n    for q_i, (u, i, j, v) in enumerate(quads):\n        b_ub.append(-float(prices[(i, j)]))\n        rows.append(q_i); cols.append(pair_idx[(i, j)]); vals.append(-1.0)\n        rows.append(q_i); cols.append(P + pair_idx[(u, v)]); vals.append(-1.0)\n        if u < i:\n            rows.append(q_i); cols.append(P + pair_idx[(u, i - 1)]); vals.append(1.0)\n        if j < v:\n            rows.append(q_i); cols.append(P + pair_idx[(j + 1, v)]); vals.append(1.0)\n    _CACHE.M = M\n    _CACHE.pairs = pairs\n    _CACHE.pair_idx = pair_idx\n    _CACHE.A_ub = csc_matrix((vals, (rows, cols)), shape=(len(quads), 2 * P))\n    _CACHE.b_base = np.asarray(b_ub, dtype=float)\n    _CACHE.prices = prices\n\n\ndef decide(t, T, M, counts, req_i, req_j, prices, remaining_expected, solver: str = \"auto\"):\n    \"\"\"可选调用开源求解器的 BPC-M 决策；solver 失败时退回最小可行块。\"\"\"\n    # 找可行 maximal intervals（按长度升序 + 左贴合）\n    cands = []\n    for (u, v), cnt in counts.items():\n        if cnt > 0 and u <= req_i and req_j <= v:\n            cands.append((u, v))\n    if not cands:\n        return None\n    cands.sort(key=lambda uv: (uv[1] - uv[0], uv[0], -uv[1]))\n\n    _ensure(M, prices)\n    pairs = _CACHE.pairs\n    pair_idx = _CACHE.pair_idx\n    P = len(pairs)\n    c = np.zeros(2 * P, dtype=float)\n    for p_i, ij in enumerate(pairs):\n        c[p_i] = float(remaining_expected.get(ij, 0.0))\n        c[P + p_i] = float(counts.get(ij, 0))\n\n    use = solver if solver != \"auto\" else preferred_lp_solver()\n    res = solve_lp(\n        c,\n        A_ub=_CACHE.A_ub,\n        b_ub=_CACHE.b_base,\n        bounds=[(0.0, None)] * (2 * P),\n        solver=use,\n        time_limit_s=0.5,\n    )\n    if not res[\"ok\"]:\n        return cands[0]\n\n    beta = res[\"x\"][P:]\n    p_val = float(prices[(req_i, req_j)])\n    best_gain = -1e18\n    best_uv = None\n    for (u, v) in cands:\n        b_uv = beta[pair_idx[(u, v)]]\n        b_left = beta[pair_idx[(u, req_i - 1)]] if u < req_i else 0.0\n        b_right = beta[pair_idx[(req_j + 1, v)]] if req_j < v else 0.0\n        gain = p_val + b_left + b_right - b_uv\n        if gain > best_gain + 1e-7:\n            best_gain = gain\n            best_uv = (u, v)\n    if best_uv is not None and best_gain >= -1e-7:\n        return best_uv\n    return None\n"
+}

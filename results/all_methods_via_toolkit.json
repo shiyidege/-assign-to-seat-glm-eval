@@ -1,0 +1,345 @@
+{
+  "available": {
+    "scip": true,
+    "cbc": true,
+    "glop": true,
+    "clp": true,
+    "highs": true,
+    "ortools": true,
+    "scipy_highs": true
+  },
+  "backends": [
+    "glop",
+    "clp",
+    "cbc",
+    "scip",
+    "highs"
+  ],
+  "heldout_N20": {
+    "MP (Myopic)": {
+      "Case1": {
+        "avg_rev": 844.37,
+        "ratio_pct": 90.54,
+        "gap_pct": 9.46,
+        "elapsed_ms": 4.6
+      },
+      "Case2": {
+        "avg_rev": 792.67,
+        "ratio_pct": 85.92,
+        "gap_pct": 14.08,
+        "elapsed_ms": 4.9
+      },
+      "mean": 88.23
+    },
+    "GLM-5 E097 (纯AI)": {
+      "Case1": {
+        "avg_rev": 884.43,
+        "ratio_pct": 94.88,
+        "gap_pct": 5.12,
+        "elapsed_ms": 314.3
+      },
+      "Case2": {
+        "avg_rev": 863.07,
+        "ratio_pct": 93.57,
+        "gap_pct": 6.43,
+        "elapsed_ms": 326.5
+      },
+      "mean": 94.22
+    },
+    "BPC-S via glop": {
+      "Case1": {
+        "avg_rev": 887.93,
+        "ratio_pct": 95.23,
+        "gap_pct": 4.77,
+        "elapsed_ms": 1018.5
+      },
+      "Case2": {
+        "avg_rev": 844.6,
+        "ratio_pct": 91.56,
+        "gap_pct": 8.44,
+        "elapsed_ms": 1083.0
+      },
+      "mean": 93.4
+    },
+    "BPC-M via glop": {
+      "Case1": {
+        "avg_rev": 893.27,
+        "ratio_pct": 95.82,
+        "gap_pct": 4.18,
+        "elapsed_ms": 1416.5
+      },
+      "Case2": {
+        "avg_rev": 876.7,
+        "ratio_pct": 95.04,
+        "gap_pct": 4.96,
+        "elapsed_ms": 1577.0
+      },
+      "mean": 95.43
+    },
+    "RDP via glop": {
+      "Case1": {
+        "avg_rev": 890.13,
+        "ratio_pct": 95.48,
+        "gap_pct": 4.52,
+        "elapsed_ms": 1774.6
+      },
+      "Case2": {
+        "avg_rev": 876.1,
+        "ratio_pct": 94.97,
+        "gap_pct": 5.03,
+        "elapsed_ms": 1854.2
+      },
+      "mean": 95.22
+    },
+    "BPC-S via clp": {
+      "Case1": {
+        "avg_rev": 890.73,
+        "ratio_pct": 95.54,
+        "gap_pct": 4.46,
+        "elapsed_ms": 1040.6
+      },
+      "Case2": {
+        "avg_rev": 852.6,
+        "ratio_pct": 92.43,
+        "gap_pct": 7.57,
+        "elapsed_ms": 976.7
+      },
+      "mean": 93.99
+    },
+    "BPC-M via clp": {
+      "Case1": {
+        "avg_rev": 893.27,
+        "ratio_pct": 95.82,
+        "gap_pct": 4.18,
+        "elapsed_ms": 1547.5
+      },
+      "Case2": {
+        "avg_rev": 876.37,
+        "ratio_pct": 95.01,
+        "gap_pct": 4.99,
+        "elapsed_ms": 1635.5
+      },
+      "mean": 95.41
+    },
+    "RDP via clp": {
+      "Case1": {
+        "avg_rev": 884.83,
+        "ratio_pct": 94.92,
+        "gap_pct": 5.08,
+        "elapsed_ms": 2503.2
+      },
+      "Case2": {
+        "avg_rev": 872.13,
+        "ratio_pct": 94.55,
+        "gap_pct": 5.45,
+        "elapsed_ms": 2485.8
+      },
+      "mean": 94.73
+    },
+    "BPC-S via cbc": {
+      "Case1": {
+        "avg_rev": 886.73,
+        "ratio_pct": 95.11,
+        "gap_pct": 4.89,
+        "elapsed_ms": 2145.2
+      },
+      "Case2": {
+        "avg_rev": 854.07,
+        "ratio_pct": 92.58,
+        "gap_pct": 7.42,
+        "elapsed_ms": 2056.9
+      },
+      "mean": 93.84
+    },
+    "BPC-M via cbc": {
+      "Case1": {
+        "avg_rev": 891.57,
+        "ratio_pct": 95.63,
+        "gap_pct": 4.37,
+        "elapsed_ms": 2530.4
+      },
+      "Case2": {
+        "avg_rev": 875.6,
+        "ratio_pct": 94.92,
+        "gap_pct": 5.08,
+        "elapsed_ms": 2822.0
+      },
+      "mean": 95.28
+    },
+    "RDP via cbc": {
+      "Case1": {
+        "avg_rev": 888.53,
+        "ratio_pct": 95.31,
+        "gap_pct": 4.69,
+        "elapsed_ms": 3478.7
+      },
+      "Case2": {
+        "avg_rev": 875.63,
+        "ratio_pct": 94.92,
+        "gap_pct": 5.08,
+        "elapsed_ms": 3987.8
+      },
+      "mean": 95.12
+    },
+    "BPC-S via scip": {
+      "Case1": {
+        "avg_rev": 889.4,
+        "ratio_pct": 95.4,
+        "gap_pct": 4.6,
+        "elapsed_ms": 5691.7
+      },
+      "Case2": {
+        "avg_rev": 856.57,
+        "ratio_pct": 92.86,
+        "gap_pct": 7.14,
+        "elapsed_ms": 5432.2
+      },
+      "mean": 94.13
+    },
+    "BPC-M via scip": {
+      "Case1": {
+        "avg_rev": 891.67,
+        "ratio_pct": 95.65,
+        "gap_pct": 4.35,
+        "elapsed_ms": 7223.1
+      },
+      "Case2": {
+        "avg_rev": 876.43,
+        "ratio_pct": 95.01,
+        "gap_pct": 4.99,
+        "elapsed_ms": 7706.4
+      },
+      "mean": 95.33
+    },
+    "RDP via scip": {
+      "Case1": {
+        "avg_rev": 881.73,
+        "ratio_pct": 94.58,
+        "gap_pct": 5.42,
+        "elapsed_ms": 7539.2
+      },
+      "Case2": {
+        "avg_rev": 876.37,
+        "ratio_pct": 95.01,
+        "gap_pct": 4.99,
+        "elapsed_ms": 7688.6
+      },
+      "mean": 94.8
+    },
+    "BPC-S via highs": {
+      "Case1": {
+        "avg_rev": 889.57,
+        "ratio_pct": 95.42,
+        "gap_pct": 4.58,
+        "elapsed_ms": 1167.9
+      },
+      "Case2": {
+        "avg_rev": 860.77,
+        "ratio_pct": 93.31,
+        "gap_pct": 6.69,
+        "elapsed_ms": 1253.8
+      },
+      "mean": 94.37
+    },
+    "BPC-M via highs": {
+      "Case1": {
+        "avg_rev": 891.47,
+        "ratio_pct": 95.63,
+        "gap_pct": 4.37,
+        "elapsed_ms": 1022.0
+      },
+      "Case2": {
+        "avg_rev": 876.67,
+        "ratio_pct": 95.04,
+        "gap_pct": 4.96,
+        "elapsed_ms": 1183.6
+      },
+      "mean": 95.34
+    },
+    "RDP via highs": {
+      "Case1": {
+        "avg_rev": 886.17,
+        "ratio_pct": 95.06,
+        "gap_pct": 4.94,
+        "elapsed_ms": 1733.6
+      },
+      "Case2": {
+        "avg_rev": 875.87,
+        "ratio_pct": 94.95,
+        "gap_pct": 5.05,
+        "elapsed_ms": 1804.2
+      },
+      "mean": 95.0
+    }
+  },
+  "ranking_mean": [
+    {
+      "method": "BPC-M via glop",
+      "mean": 95.43
+    },
+    {
+      "method": "BPC-M via clp",
+      "mean": 95.41
+    },
+    {
+      "method": "BPC-M via highs",
+      "mean": 95.34
+    },
+    {
+      "method": "BPC-M via scip",
+      "mean": 95.33
+    },
+    {
+      "method": "BPC-M via cbc",
+      "mean": 95.28
+    },
+    {
+      "method": "RDP via glop",
+      "mean": 95.22
+    },
+    {
+      "method": "RDP via cbc",
+      "mean": 95.12
+    },
+    {
+      "method": "RDP via highs",
+      "mean": 95.0
+    },
+    {
+      "method": "RDP via scip",
+      "mean": 94.8
+    },
+    {
+      "method": "RDP via clp",
+      "mean": 94.73
+    },
+    {
+      "method": "BPC-S via highs",
+      "mean": 94.37
+    },
+    {
+      "method": "GLM-5 E097 (纯AI)",
+      "mean": 94.22
+    },
+    {
+      "method": "BPC-S via scip",
+      "mean": 94.13
+    },
+    {
+      "method": "BPC-S via clp",
+      "mean": 93.99
+    },
+    {
+      "method": "BPC-S via cbc",
+      "mean": 93.84
+    },
+    {
+      "method": "BPC-S via glop",
+      "mean": 93.4
+    },
+    {
+      "method": "MP (Myopic)",
+      "mean": 88.23
+    }
+  ]
+}
