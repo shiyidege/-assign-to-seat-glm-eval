@@ -1,6 +1,7 @@
 # AI 求解高铁 Assign-to-Seat 收益管理论文全量实验报告
 
 > **目标论文**：*Assign-to-Seat: Dynamic Capacity Control for Selling High-Speed Train Tickets*（Feng Zhu, Shaoxuan Liu, Rowan Wang, Zizhuo Wang）  
+> **正式排版 Word 汇报版**：[`AI求解高铁Assign-to-Seat运筹问题技术报告.docx`](AI求解高铁Assign-to-Seat运筹问题技术报告.docx)（图文并茂、含高清架构图、全部实验图表与数学公式，适合直接发给团队/评审阅读）  
 > **研究主线**：围绕这篇高铁动态控票与排座运筹论文，我们完成了两大阶段的系统实证：
 > - **第一阶段（纯 AI 零求解器）**：在不依赖任何商业或开源运筹求解器的前提下，探索大模型（智谱 GLM Coding Plan）+ 校验/仿真反馈闭环能否独立求解静态排座与动态控票问题，并与论文原版 LP 方法及同系列不同档位 GLM 模型做横向对比。
 > - **第二阶段（新增：开源求解器可选组件 `open_solver_component/`）**：为大模型提供一个**可选调用**的开源求解器组件 `solver_toolkit`（封装本机 OR-Tools `GLOP / CLP / CBC / SCIP` 与 `SciPy HiGHS`），允许 AI 自主决定“调用还是不调用”，同时将论文全部动态方法（`MP / BPC-S / BPC-M / RDP`）完整接入全部 5 个开源后端，与第一阶段纯 AI 冠军 `E097` 正面对决。
